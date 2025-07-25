@@ -1,0 +1,221 @@
+/* About-Floating Classes */
+/* Enhanced floating animations with smoother transitions */
+
+@keyframes floatLeft {
+  0% {
+    transform: translateX(0) translateY(0) rotate(0deg);
+    opacity: 0.9;
+  }
+  25% {
+    transform: translateX(-48px) translateY(-12px) rotate(-1deg);
+    opacity: 0.8;
+  }
+  50% {
+    transform: translateX(-96px) translateY(0) rotate(-2deg);
+    opacity: 0.7;
+  }
+  75% {
+    transform: translateX(-48px) translateY(12px) rotate(-1deg);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateX(0) translateY(0) rotate(0deg);
+    opacity: 0.9;
+  }
+}
+
+@keyframes floatRight {
+  0% {
+    transform: translateX(0) translateY(0) rotate(0deg);
+    opacity: 0.9;
+  }
+  25% {
+    transform: translateX(48px) translateY(8px) rotate(1deg);
+    opacity: 0.8;
+  }
+  50% {
+    transform: translateX(96px) translateY(0) rotate(2deg);
+    opacity: 0.7;
+  }
+  75% {
+    transform: translateX(48px) translateY(-8px) rotate(1deg);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateX(0) translateY(0) rotate(0deg);
+    opacity: 0.9;
+  }
+}
+
+/* Enhanced breathe animation for when cards are hovered */
+@keyframes breathe {
+  0%,
+  100% {
+    transform: scale(1) rotate(0deg);
+    filter: brightness(1);
+  }
+  50% {
+    transform: scale(1.02) rotate(0.5deg);
+    filter: brightness(1.05);
+  }
+}
+
+/* Floating particles animation */
+@keyframes floatParticle {
+  0%,
+  100% {
+    transform: translateY(0px) translateX(0px) scale(1);
+    opacity: 0.3;
+  }
+  25% {
+    opacity: 0.6;
+  }
+  50% {
+    transform: translateY(-30px) translateX(15px) scale(1.2);
+    opacity: 0.8;
+  }
+  75% {
+    opacity: 0.6;
+  }
+}
+
+/* Pulse effect for expanded cards */
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(255, 255, 255, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+  }
+}
+
+/* Shimmer effect */
+@keyframes shimmer {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+/* Enhanced floating classes with better timing */
+.floating-left {
+  animation: floatLeft 8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  will-change: transform, opacity;
+}
+
+.floating-right {
+  animation: floatRight 8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  will-change: transform, opacity;
+}
+
+/* Hover state enhancements */
+.floating-left:hover {
+  animation-duration: 4s;
+}
+
+.floating-right:hover {
+  animation-duration: 4s;
+}
+
+/* Additional utility classes for enhanced UX */
+.card-hover-effect {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform, filter, box-shadow;
+}
+
+.card-hover-effect:hover {
+  animation: breathe 2s ease-in-out infinite;
+}
+
+.card-expanded {
+  animation: pulse 2s infinite;
+}
+
+.shimmer-effect {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+/* Smooth transitions for all elements */
+* {
+  transition-property: transform, opacity, filter, box-shadow;
+  transition-duration: 0.3s;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Performance optimizations */
+.floating-left,
+.floating-right,
+.card-hover-effect {
+  backface-visibility: hidden;
+  perspective: 1000px;
+  transform-style: preserve-3d;
+}
+
+/* Responsive enhancements */
+@media (max-width: 768px) {
+  .floating-left,
+  .floating-right {
+    animation-duration: 6s;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .floating-left,
+  .floating-right {
+    opacity: 1 !important;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .floating-left,
+  .floating-right,
+  .card-hover-effect {
+    animation: none;
+  }
+
+  * {
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Vision Section CSS */
+.floating-left {
+  animation: float-left 6s ease-in-out infinite;
+}
+.floating-right {
+  animation: float-right 6s ease-in-out infinite;
+}
+
+@keyframes float-left {
+  0%,
+  100% {
+    transform: translateY(-50%) translateX(0px);
+  }
+  50% {
+    transform: translateY(-50%) translateX(-10px);
+  }
+}
+
+@keyframes float-right {
+  0%,
+  100% {
+    transform: translateY(-50%) translateX(0px);
+  }
+  50% {
+    transform: translateY(-50%) translateX(10px);
+  }
+}
