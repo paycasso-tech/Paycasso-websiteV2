@@ -119,4 +119,44 @@
   body {
     @apply bg-black text-white;
   }
+
+  button {
+    @apply cursor-pointer
+  }
+
+}
+
+@layer utilities {
+  
+  .timeline-1 {
+    border: 1px solid rgb(73, 73, 73);
+    border-top-right-radius: 0;
+    border-right: 0;
+  }
+  .timeline-2 {
+    border: 1px solid rgb(73, 73, 73);
+    border-top: 0;
+    border-right: 0;
+    border-left: 0;
+    border-bottom-right-radius: 0;
+  }
+  .reverse-rounded {
+  position: relative;
+  width: 300px;
+  height: 200px;
+  background: #ffa;
+}
+.reverse-rounded::after {
+  content: "";
+  position: absolute;
+  top: -3.75rem;
+  right: -3.75rem;
+  width: 7.5rem;
+  height: 7.5rem;
+  border-radius: 50%;
+  box-shadow: 3.75rem 3.75rem 0 0 #ffa;
+  background: transparent;
+  pointer-events: none;
+}
+
 }
