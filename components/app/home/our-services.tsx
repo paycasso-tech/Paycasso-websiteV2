@@ -31,7 +31,7 @@ export default function OurServices() {
       />
       <SectionUnderlineLabel title="Our Services" />
       <div className="w-full max-w-5xl grid md:grid-cols-4 relative gap-5 py-10 pb-0 z-3">
-        <div className="px-3 md:px-5 py-5 space-y-3 border rounded-xl bg-black md:col-span-1">
+        <div className="px-3 md:px-5 py-5 space-y-3 border border-neutral-800 rounded-xl bg-black md:col-span-1">
           <Image
             src="/website/smart-contract-escrow.svg"
             alt=""
@@ -67,7 +67,7 @@ export default function OurServices() {
           </h1>
           <div className="bg-black absolute -bottom-px border border-b-0 left-1/2 -translate-x-1/2 rounded-t-full w-66 h-33"></div>
         </div> */}
-        <div className="px-3 md:px-5 py-5 space-y-3 border rounded-xl bg-black col-span-1">
+        <div className="px-3 md:px-5 py-5 space-y-3 border border-neutral-800 rounded-xl bg-black col-span-1">
           <Image
             src="/website/gasless-transaction.svg"
             alt=""
@@ -83,7 +83,7 @@ export default function OurServices() {
             optimized for efficiency.
           </p>
         </div>
-        <div className="px-3 md:px-5 py-5 space-y-3 border rounded-xl bg-black col-span-1 md:pt-10">
+        <div className="px-3 md:px-5 py-5 space-y-3 border border-neutral-800 rounded-xl bg-black col-span-1 md:pt-10">
           <Image
             src="/our-services/instant-settlement.svg"
             alt=""
@@ -100,7 +100,7 @@ export default function OurServices() {
           </p>
         </div>
         <div
-          className="px-3 md:px-5 py-5 space-y-3 border rounded-xl bg-transparent col-span-1 md:pt-22"
+          className="px-3 md:px-5 py-5 space-y-3 border border-neutral-800 rounded-xl bg-transparent col-span-1 md:pt-22"
           style={{
             backgroundImage: "url(/our-services/orange-svg-bg.svg)",
             backgroundSize: "cover",
@@ -124,7 +124,7 @@ export default function OurServices() {
           </p>
         </div>
         <div
-          className="px-3 md:px-5 py-5 space-y-3 border rounded-xl bg-transparent col-span-1 md:pt-22"
+          className="px-3 md:px-5 py-5 space-y-3 border border-neutral-800 rounded-xl bg-transparent col-span-1 md:pt-22"
           style={{
             backgroundImage: "url(/our-services/purple-svg-bg.svg)",
             backgroundSize: "cover",
@@ -149,7 +149,7 @@ export default function OurServices() {
             securely with blockchain-powered infrastructure.
           </p>
         </div>
-        <div className="px-3 md:px-5 py-5 space-y-3 border rounded-xl bg-black col-span-1 md:pt-10">
+        <div className="px-3 md:px-5 py-5 space-y-3 border border-neutral-800 rounded-xl bg-black col-span-1 md:pt-10">
           <Image
             width={200}
             height={200}

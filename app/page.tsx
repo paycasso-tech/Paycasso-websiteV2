@@ -21,9 +21,9 @@ export default function HomePage() {
           <OurServices />
           <VisionSection />
           <CallToAction />
-          <Footer />
         </div>
       </main>
+      <Footer />
     </>
   );
 }
