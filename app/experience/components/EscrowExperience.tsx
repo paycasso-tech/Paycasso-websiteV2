@@ -1,4 +1,5 @@
-"use client";
+'use client';
+
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence, useAnimation } from "framer-motion";
 import {
@@ -45,7 +46,7 @@ const EscrowExperience = () => {
 
   // Epic mouse tracking for particle effects
   useEffect(() => {
-    const handleMouseMove = (e: { clientX: any; clientY: any }) => {
+    const handleMouseMove = (e: { clientX: number; clientY: number }) => {
       setMousePosition({ x: e.clientX, y: e.clientY });
     };
     window.addEventListener("mousemove", handleMouseMove);
@@ -71,58 +72,86 @@ const EscrowExperience = () => {
   };
 
   // Floating particles component
-  const FloatingParticles = ({ count = 50, color = "#3B82F6" }) => (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {Array.from({ length: count }).map((_, i) => (
-        <motion.div
-          key={i}
-          className="absolute w-1 h-1 rounded-full opacity-60"
-          style={{ backgroundColor: color }}
-          initial={{
-            x: Math.random() * window.innerWidth,
-            y: Math.random() * window.innerHeight,
-          }}
-          animate={{
-            x: Math.random() * window.innerWidth,
-            y: Math.random() * window.innerHeight,
-            scale: [0, 1, 0],
-            opacity: [0, 1, 0],
-          }}
-          transition={{
-            duration: Math.random() * 3 + 2,
-            repeat: Infinity,
-            delay: Math.random() * 2,
-            ease: "easeInOut",
-          }}
-        />
-      ))}
-    </div>
-  );
+  const FloatingParticles = ({ count = 50, color = "#3B82F6" }) => {
+    const [isClient, setIsClient] = useState(false);
+
+    useEffect(() => {
+      // This runs only on the client, after the component mounts
+      setIsClient(true);
+    }, []);
+
+    // Don't render anything on the server
+    if (!isClient) {
+      return null;
+    }
+
+    return (
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {Array.from({ length: count }).map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute w-1 h-1 rounded-full opacity-60"
+            style={{ backgroundColor: color }}
+            initial={{
+              x: Math.random() * window.innerWidth,
+              y: Math.random() * window.innerHeight,
+            }}
+            animate={{
+              x: Math.random() * window.innerWidth,
+              y: Math.random() * window.innerHeight,
+              scale: [0, 1, 0],
+              opacity: [0, 1, 0],
+            }}
+            transition={{
+              duration: Math.random() * 3 + 2,
+              repeat: Infinity,
+              delay: Math.random() * 2,
+              ease: "easeInOut",
+            }}
+          />
+        ))}
+      </div>
+    );
+  };
 
   // Matrix-style digital rain
-  const MatrixRain = () => (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {Array.from({ length: 20 }).map((_, i) => (
-        <motion.div
-          key={i}
-          className="absolute text-green-400 text-xs font-mono opacity-20"
-          style={{ left: `${i * 5}%` }}
-          initial={{ y: -100 }}
-          animate={{ y: window.innerHeight + 100 }}
-          transition={{
-            duration: Math.random() * 3 + 2,
-            repeat: Infinity,
-            delay: Math.random() * 2,
-            ease: "linear",
-          }}
-        >
-          {Array.from({ length: 20 }, () =>
-            Math.random() > 0.5 ? "1" : "0"
-          ).join("")}
-        </motion.div>
-      ))}
-    </div>
-  );
+  const MatrixRain = () => {
+    const [isClient, setIsClient] = useState(false);
+
+    useEffect(() => {
+      // This runs only on the client, after the component mounts
+      setIsClient(true);
+    }, []);
+
+    // Don't render anything on the server
+    if (!isClient) {
+      return null;
+    }
+
+    return (
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {Array.from({ length: 20 }).map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute text-green-400 text-xs font-mono opacity-20"
+            style={{ left: `${i * 5}%` }}
+            initial={{ y: -100 }}
+            animate={{ y: window.innerHeight + 100 }}
+            transition={{
+              duration: Math.random() * 3 + 2,
+              repeat: Infinity,
+              delay: Math.random() * 2,
+              ease: "linear",
+            }}
+          >
+            {Array.from({ length: 20 }, () =>
+              Math.random() > 0.5 ? "1" : "0"
+            ).join("")}
+          </motion.div>
+        ))}
+      </div>
+    );
+  };
 
   // Epic glitch text effect
   interface GlitchTextProps {
@@ -1921,7 +1950,7 @@ const EscrowExperience = () => {
         >
           Experience the future of freelance payments with{" "}
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500 font-black">
-            Paycasso's web3 escrow solution
+            Paycasso&apos;s web3 escrow solution
           </span>
         </motion.p>
 

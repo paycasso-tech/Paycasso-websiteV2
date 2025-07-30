@@ -5,10 +5,8 @@ import {
   ChevronRight,
   Bell,
   User,
-  Calendar,
   Plus,
   Download,
-  Eye,
 } from "lucide-react";
 
 const PaycassoDashboard = () => {
@@ -114,12 +112,6 @@ const PaycassoDashboard = () => {
     { day: "28", date: 28, highlighted: true },
     { day: "29", date: 29 },
     { day: "30", date: 30 },
-    { day: "", inactive: true },
-    { day: "", inactive: true },
-    { day: "", inactive: true },
-    { day: "", inactive: true },
-    { day: "", inactive: true },
-    { day: "", inactive: true },
   ];
 
   const getStatusColor = (status: string) => {
