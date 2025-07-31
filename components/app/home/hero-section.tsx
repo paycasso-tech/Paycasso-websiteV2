@@ -22,7 +22,7 @@ function AnimatedPaycasso() {
         height: 90,
         color: "#E3E3E3",
         fontWeight: 700,
-        fontSize: 72,
+        fontSize: 80,
         lineHeight: "115%",
         marginTop: 220,
         marginBottom: 8,
