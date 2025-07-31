@@ -31,7 +31,7 @@ export const MenuItem = ({
       >
         {item}
       </motion.p>
-      {active !== null && (
+      {/* {active !== null && (
         <motion.div
           initial={{ opacity: 0, scale: 0.85, y: 10 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -44,7 +44,7 @@ export const MenuItem = ({
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 transition={transition as any}
                 layoutId="active"
-                className="bg-black/80 backdrop-blur-md rounded-2xl overflow-hidden border border-white/10 shadow-xl"
+                className="bg-white/90 backdrop-blur-md rounded-2xl overflow-hidden border border-white/10 shadow-xl"
               >
                 <motion.div layout className="w-max h-full p-4">
                   {children}
@@ -53,7 +53,7 @@ export const MenuItem = ({
             </div>
           )}
         </motion.div>
-      )}
+      )} */}
     </div>
   );
 };
@@ -108,7 +108,7 @@ export const Menu = ({
       onMouseLeave={() => setActive(null)}
       animate={{
         width: getNavbarWidth(),
-        backdropFilter: isScrolled ? "blur(20px)" : "blur(10px)",
+        backdropFilter: isScrolled ? "blur(24px)" : "blur(12px)",
         gap: getNavbarGap(),
       }}
       transition={{
@@ -117,15 +117,12 @@ export const Menu = ({
         damping: 20,
         duration: 0.3,
       }}
-      className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 rounded-full 
-                 bg-gradient-to-r from-gray-900/70 via-black/80 to-gray-900/70 
-                 border border-white/10 shadow-2xl backdrop-blur-md
+      className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 rounded-full
+                 border border-white/10 shadow-xl backdrop-blur-lg
                  flex justify-center items-center px-8 py-4"
       style={{
-        background: `linear-gradient(135deg, 
-          rgba(15, 23, 42, 0.8) 0%, 
-          rgba(0, 0, 0, 0.9) 50%, 
-          rgba(15, 23, 42, 0.8) 100%)`,
+        background: "rgba(255,255,255,0.05)", // more transparent
+        boxShadow: "0 8px 32px 0 rgba(31, 38, 135, 0.22)",
         gap: getNavbarGap(),
       }}
     >

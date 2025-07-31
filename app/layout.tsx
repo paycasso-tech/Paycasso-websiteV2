@@ -3,7 +3,7 @@ import "./globals.css";
 import { fontPoppins } from "@/lib/fonts";
 
 export const metadata: Metadata = {
-  title: "Paycasso.in",
+  title: "Paycasso",
   description: "The future of money we build together",
   icons: {
     icon: ["/favicon.ico?v=2"],
