@@ -8,6 +8,9 @@ const disputeSchema=new mongoose.Schema({
  disputeTitle: { type: String, required: true },
   description: { type: String, required: true },
   amountInvolved: { type: Number, required: true },
+  cid :  {type: String , required : true},
+  ipfs_url : {type: String , required : true},
+
      // CID of IPFS file (chat/images) DEEPAK 
   status: { type: String, default: "pending" },
   createdAt: { type: Date, default: Date.now },

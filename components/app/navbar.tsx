@@ -16,9 +16,10 @@ export default function Navbar({ className }: { className?: string }) {
         </div>
         {/* Prevent wrapping and add spacing */}
         <div className="flex flex-row gap-x-8 whitespace-nowrap items-center">
-          <MenuItem setActive={setActive} active={active} item="Home" />
-          <MenuItem setActive={setActive} active={active} item="How It Works" />
-          <MenuItem setActive={setActive} active={active} item="Our Flow" />
+          <MenuItem setActive={setActive} active={active} item="Home" route="/"/>
+          <MenuItem setActive={setActive} active={active} item="How It Works" route="/how-it-works"/>
+          <MenuItem setActive={setActive} active={active} item="Our Flow" route="/experience"/>
+          <MenuItem setActive={setActive} active={active} item="Raise Dispute" route="/raise-dispute"/>
         </div>
       </Menu>
     </div>

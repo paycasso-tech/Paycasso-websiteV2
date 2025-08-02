@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "motion/react";
 import Image from "next/image";
+import Link from "next/link"
 
 const transition = {
   type: "spring",
@@ -17,11 +18,13 @@ export const MenuItem = ({
   active,
   item,
   children,
+  route
 }: {
   setActive: (item: string) => void;
   active: string | null;
   item: string;
   children?: React.ReactNode;
+  route: string;
 }) => {
   return (
     <div onMouseEnter={() => setActive(item)} className="relative">
@@ -29,8 +32,13 @@ export const MenuItem = ({
         transition={{ duration: 0.3 }}
         className="cursor-pointer text-white hover:text-gray-200 transition-colors duration-300"
       >
-        {item}
+        <Link href={route}>{item}</Link>
+        
       </motion.p>
+      {/* 
+        This component does not handle routing. 
+        It only manages hover state and displays a dropdown if active.
+      */}
       {/* {active !== null && (
         <motion.div
           initial={{ opacity: 0, scale: 0.85, y: 10 }}
