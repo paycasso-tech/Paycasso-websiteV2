@@ -1,7 +1,7 @@
 "use server";
 
 import { encodedRedirect } from "@/lib/utils/utils";
-import { createClient } from "@/lib/utils/supabase/server";
+import { createClient, createServiceClient } from "@/lib/utils/supabase/server";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { hasEnvVars } from "@/lib/utils/supabase/check-env-vars";
@@ -84,36 +84,65 @@ export const signUpAction = async (formData: FormData) => {
 
       const createdWallet = await createdWalletResponse.json();
 
-      const { data: profileData, error: profileError } = await supabase
-        .from("profiles")
-        .update({
-          email,
-          full_name: fullName,
-          company_name: companyName
-        })
-        .eq("auth_user_id", authData.user?.id)
-        .select()
-        .single();
-
-      if (profileError) {
-        console.error("Error while attempting to create user:", profileError);
-        return { error: "Could not create user" };
+      // Create profile using service client to bypass RLS
+      if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+        console.error("SUPABASE_SERVICE_ROLE_KEY is not configured");
+        return { error: "Server configuration error. Please try again later." };
       }
 
-      const { error: walletError } = await supabase
-        .schema("public")
-        .from("wallets")
-        .insert({
-          profile_id: profileData.id,
-          circle_wallet_id: createdWallet.id,
-          wallet_type: createdWallet.custodyType,
-          wallet_set_id: createdWalletSet.id,
-          wallet_address: createdWallet.address,
-          account_type: createdWallet.accountType,
-          blockchain: createdWallet.blockchain,
-          currency: "USDC",
-        })
-        .select();
+      const serviceClient = createServiceClient();
+             const { data: profileData, error: profileError } = await serviceClient
+         .from("profiles")
+         .upsert({
+           auth_user_id: authData.user?.id,
+           email,
+           name: fullName,
+           company_name: companyName
+         }, {
+           onConflict: 'auth_user_id'
+         })
+         .select()
+         .single();
+
+      if (profileError) {
+        console.error("Error while attempting to create user profile:", profileError);
+                 console.error("Profile data that failed:", {
+           auth_user_id: authData.user?.id,
+           email,
+           name: fullName,
+           company_name: companyName
+         });
+        return { error: "Could not create user profile" };
+      }
+
+      console.log("Profile created successfully:", profileData);
+
+      // Validate that we have all required data
+      if (!profileData?.id) {
+        console.error("Profile data is missing or invalid:", profileData);
+        return { error: "Profile data is invalid" };
+      }
+
+      if (!createdWallet?.id || !createdWalletSet?.id) {
+        console.error("Wallet or wallet set data is missing:", { createdWallet, createdWalletSet });
+        return { error: "Wallet setup data is invalid" };
+      }
+
+      console.log("Creating wallet with profile_id:", profileData.id);
+
+             const { error: walletError } = await serviceClient
+         .from("wallets")
+         .insert({
+           profile_id: profileData.id,
+           circle_wallet_id: createdWallet.id,
+           wallet_type: createdWallet.custodyType,
+           wallet_set_id: createdWalletSet.id,
+           wallet_address: createdWallet.address,
+           account_type: createdWallet.accountType,
+           blockchain: createdWallet.blockchain,
+           currency: "USDC",
+         })
+         .select();
 
       if (walletError) {
         console.error(
@@ -131,7 +160,7 @@ export const signUpAction = async (formData: FormData) => {
     return { error: "Network error. Please check your connection and try again." };
   }
 
-  return redirect("/dashboard");
+  return { success: true, redirectTo: "/dashboard" };
 };
 
 export const signInAction = async (formData: FormData) => {
@@ -162,7 +191,7 @@ export const signInAction = async (formData: FormData) => {
       return encodedRedirect("error", "/sign-in", error.message);
     }
 
-    return redirect("/dashboard");
+    return { success: true, redirectTo: "/dashboard" };
   } catch (error: any) {
     console.error("Network error during sign in:", error.message);
     return { error: "Network error. Please check your connection and try again." };

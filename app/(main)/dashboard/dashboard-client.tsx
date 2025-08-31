@@ -7,10 +7,19 @@ import {
   User,
   Plus,
   Download,
+  TrendingUp,
+  CheckCircle2,
+  Clock,
+  AlertTriangle,
+  Calendar,
+  Zap,
+  ArrowUpRight,
+  ArrowDownRight,
 } from "lucide-react";
 import WalletBalanceCard from "@/components/dashboard/wallet/wallet-balance-card";
 import { Transactions } from "@/components/dashboard/wallet/transactions";
 import { useRouter } from "next/navigation";
+import InteractiveSidebar from "@/components/dashboard/sidebar";
 
 const DashboardClient: React.FC = () => {
   const router = useRouter();
@@ -149,121 +158,119 @@ const DashboardClient: React.FC = () => {
   };
 
   return (
-    <div
-      className="min-h-screen w-full bg-primary-900 text-white"
-      style={{ fontFamily: "Inter, sans-serif" }}
-    >
+    <div className="min-h-screen w-full bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 text-white">
       {/* Sidebar */}
-      <div className="fixed left-0 top-0 h-full w-16 bg-gray-800 flex flex-col items-center py-6 space-y-6">
-        <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
-          <div className="w-4 h-4 bg-gray-900 rounded grid grid-cols-2 gap-0.5">
-            <div className="bg-white rounded-sm"></div>
-            <div className="bg-white rounded-sm"></div>
-            <div className="bg-white rounded-sm"></div>
-            <div className="bg-white rounded-sm"></div>
-          </div>
-        </div>
-        <div className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white cursor-pointer">
-          <div className="w-6 h-1 bg-current rounded"></div>
-        </div>
-        <div 
-          className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white cursor-pointer" 
-          onClick={handleNavigateToAgreements}
-        >
-          <div className="w-6 h-6 border-2 border-current rounded"></div>
-        </div>
-        <div className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white cursor-pointer">
-          <div className="w-6 h-6 relative">
-            <div className="w-4 h-4 border-2 border-current rounded-full absolute top-0 left-1"></div>
-            <div className="w-2 h-2 bg-current rounded-full absolute bottom-0 left-2"></div>
-          </div>
-        </div>
-        <div className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white cursor-pointer">
-          <div className="w-6 h-6 border-2 border-current rounded-lg flex items-center justify-center">
-            <div className="w-2 h-2 bg-current rounded-full"></div>
-          </div>
-        </div>
-        <div className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white cursor-pointer">
-          <div className="w-6 h-6 flex flex-col space-y-1">
-            <div className="w-full h-1 bg-current rounded"></div>
-            <div className="w-full h-1 bg-current rounded"></div>
-            <div className="w-4 h-1 bg-current rounded"></div>
-          </div>
-        </div>
-      </div>
+      <InteractiveSidebar />
 
       {/* Main Content */}
-      <div className="ml-16 p-8">
-        <div className="grid grid-cols-12 gap-8">
+      <div className="ml-16 p-6 lg:p-8">
+        <div className="grid grid-cols-12 gap-6 lg:gap-8">
           {/* Stats Cards */}
-          <div className="col-span-8">
-            <div className="grid grid-cols-4 gap-6 mb-8">
-              <WalletBalanceCard/>
+          <div className="col-span-12 lg:col-span-8">
+            {/* Stats Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-8">
+              <WalletBalanceCard />
 
               {/* Pending Escrow */}
-              <div className="bg-primary rounded-3xl p-6">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-white text-medium font-bold mb-2">
-                    Pending Escrow
-                  </h3>
+              <div className="group bg-gray-800/60 backdrop-blur-sm border border-gray-700/50 rounded-xl p-6 hover:bg-gray-800/80 transition-all duration-300 hover:border-yellow-500/30 hover:shadow-lg hover:shadow-yellow-500/10">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="p-2 bg-yellow-500/20 rounded-lg">
+                    <Clock className="w-5 h-5 text-yellow-400" />
+                  </div>
+                  <div className="text-xs bg-yellow-500/20 text-yellow-300 px-2 py-1 rounded-full border border-yellow-500/30">
+                    Active
+                  </div>
                 </div>
-                <div className="text-2xl font-medium mb-2">12</div>
-                <div className="text-xs px-2 py-1 rounded-full inline-block text-white">
-                  3 awaiting approval
+                <div className="space-y-1 mb-3">
+                  <h3 className="text-sm font-medium text-gray-300">Pending Escrow</h3>
+                  <div className="text-2xl font-bold text-white">12</div>
+                </div>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-yellow-300">3 awaiting approval</span>
+                  <ArrowUpRight className="w-3 h-3 text-yellow-400 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                 </div>
               </div>
 
               {/* Completed Deals */}
-              <div className="bg-primary rounded-3xl p-6">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-gray-400 text-sm">Completed Deals</h3>
-                  <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
-                    <span className="text-xs font-medium text-white">✓</span>
+              <div className="group bg-gray-800/60 backdrop-blur-sm border border-gray-700/50 rounded-xl p-6 hover:bg-gray-800/80 transition-all duration-300 hover:border-green-500/30 hover:shadow-lg hover:shadow-green-500/10">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="p-2 bg-green-500/20 rounded-lg">
+                    <CheckCircle2 className="w-5 h-5 text-green-400" />
+                  </div>
+                  <div className="text-xs bg-green-500/20 text-green-300 px-2 py-1 rounded-full border border-green-500/30">
+                    +12.5%
                   </div>
                 </div>
-                <div className="text-2xl font-semibold mb-2">78</div>
-                <div className="text-green-400 text-xs">+10 this week</div>
+                <div className="space-y-1 mb-3">
+                  <h3 className="text-sm font-medium text-gray-300">Completed Deals</h3>
+                  <div className="text-2xl font-bold text-white">78</div>
+                </div>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-green-300">+10 this week</span>
+                  <TrendingUp className="w-3 h-3 text-green-400 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                </div>
               </div>
 
               {/* Disputes */}
-              <div className="bg-primary rounded-3xl p-6">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-gray-400 text-sm">Disputes</h3>
-                  <div className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">
-                    <span className="text-xs font-medium text-white">✕</span>
+              <div className="group bg-gray-800/60 backdrop-blur-sm border border-gray-700/50 rounded-xl p-6 hover:bg-gray-800/80 transition-all duration-300 hover:border-red-500/30 hover:shadow-lg hover:shadow-red-500/10">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="p-2 bg-red-500/20 rounded-lg">
+                    <AlertTriangle className="w-5 h-5 text-red-400" />
+                  </div>
+                  <div className="text-xs bg-red-500/20 text-red-300 px-2 py-1 rounded-full border border-red-500/30">
+                    Critical
                   </div>
                 </div>
-                <div className="text-2xl font-semibold mb-2">2</div>
-                <div className="text-red-400 text-xs">1 requires attention</div>
+                <div className="space-y-1 mb-3">
+                  <h3 className="text-sm font-medium text-gray-300">Disputes</h3>
+                  <div className="text-2xl font-bold text-white">2</div>
+                </div>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-red-300">1 requires attention</span>
+                  <ArrowUpRight className="w-3 h-3 text-red-400 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                </div>
               </div>
             </div>
 
             {/* Recent Transactions */}
-            <Transactions/>
+            <div className="bg-gray-800/60 backdrop-blur-sm border border-gray-700/50 rounded-xl">
+              <Transactions />
+            </div>
           </div>
 
           {/* Right Sidebar */}
-          <div className="col-span-4 space-y-6">
+          <div className="col-span-12 lg:col-span-4 space-y-6">
             {/* Calendar */}
-            <div className="bg-gray-800 rounded-lg p-6">
-              <div className="flex items-center justify-between mb-4">
-                <button onClick={() => setCurrentMonth("December")}>
-                  <ChevronLeft className="w-4 h-4 text-gray-400" />
-                </button>
-                <div className="flex space-x-4">
-                  <span className="text-sm font-medium">{currentMonth}</span>
-                  <span className="text-sm font-medium">February</span>
+            <div className="bg-gray-800/60 backdrop-blur-sm border border-gray-700/50 rounded-xl p-6 hover:bg-gray-800/80 transition-all duration-300">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-5 h-5 text-blue-400" />
+                  <h3 className="font-semibold text-white">Calendar</h3>
                 </div>
-                <button onClick={() => setCurrentMonth("February")}>
-                  <ChevronRight className="w-4 h-4 text-gray-400" />
-                </button>
+                <div className="flex items-center gap-2">
+                  <button 
+                    onClick={() => setCurrentMonth("December")}
+                    className="p-1.5 hover:bg-gray-700/50 rounded-lg transition-colors"
+                  >
+                    <ChevronLeft className="w-4 h-4 text-gray-400 hover:text-white" />
+                  </button>
+                  <span className="text-sm font-medium text-gray-200 px-3">
+                    {currentMonth} 2024
+                  </span>
+                  <button 
+                    onClick={() => setCurrentMonth("February")}
+                    className="p-1.5 hover:bg-gray-700/50 rounded-lg transition-colors"
+                  >
+                    <ChevronRight className="w-4 h-4 text-gray-400 hover:text-white" />
+                  </button>
+                </div>
               </div>
 
-              <div className="grid grid-cols-7 gap-1 mb-2">
-                {["S", "M", "T", "W", "W", "S", "S"].map((day, index) => (
+              <div className="grid grid-cols-7 gap-1 mb-3">
+                {["S", "M", "T", "W", "T", "F", "S"].map((day, index) => (
                   <div
                     key={index}
-                    className="text-center text-xs text-gray-400 py-2 font-medium"
+                    className="text-center text-xs font-semibold text-gray-400 py-2"
                   >
                     {day}
                   </div>
@@ -274,14 +281,12 @@ const DashboardClient: React.FC = () => {
                 {calendarDays.map((day, index) => (
                   <div
                     key={index}
-                    className={`text-center text-sm py-2 cursor-pointer rounded ${
+                    className={`text-center text-sm py-2 cursor-pointer rounded-lg transition-all duration-200 ${
                       day.inactive
                         ? "text-gray-600"
-                        : day.highlighted
-                        ? "bg-blue-600 text-white"
                         : day.date === 28
-                        ? "bg-orange-500 text-white rounded-full w-8 h-8 flex items-center justify-center mx-auto"
-                        : "text-gray-300 hover:bg-gray-700"
+                        ? "bg-blue-600 text-white shadow-md hover:bg-blue-500"
+                        : "text-gray-300 hover:bg-gray-700/50 hover:text-white"
                     }`}
                   >
                     {day.day}
@@ -291,53 +296,82 @@ const DashboardClient: React.FC = () => {
             </div>
 
             {/* Paycasso AI Lab */}
-            <div className="bg-gradient-to-br from-purple-600 to-purple-800 rounded-lg p-6 text-center">
-              <div className="mb-4">
-                <div className="w-12 h-12 mx-auto mb-3 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
-                  <div className="w-6 h-6 text-white">⚡</div>
+            <div className="relative overflow-hidden bg-gradient-to-br from-purple-600/80 to-purple-800/80 backdrop-blur-sm border border-purple-500/30 rounded-xl p-6 hover:from-purple-600/90 hover:to-purple-800/90 transition-all duration-300 group">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_70%,rgba(168,85,247,0.3),transparent_70%)]"></div>
+              <div className="relative">
+                <div className="flex items-center justify-center mb-4">
+                  <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm border border-white/30 group-hover:scale-110 transition-transform duration-300">
+                    <Zap className="w-6 h-6 text-white" />
+                  </div>
                 </div>
-                <h3 className="text-lg font-semibold mb-2">Paycasso AI Lab</h3>
+                <h3 className="text-lg font-bold text-center mb-2">Paycasso AI Lab</h3>
+                <p className="text-purple-100 text-sm text-center mb-4">
+                  Smart contract analysis & risk assessment
+                </p>
+                <button className="w-full bg-white/20 hover:bg-white/30 backdrop-blur-sm border border-white/30 rounded-lg py-2.5 px-4 text-sm font-medium text-white transition-all duration-200 hover:scale-[1.02]">
+                  Launch AI Assistant
+                </button>
               </div>
             </div>
 
             {/* Pending Approvals */}
-            <div className="bg-gray-800 rounded-lg p-6">
-              <h3 className="text-lg font-semibold mb-4">Pending Approvals</h3>
-              <div className="space-y-3">
+            <div className="bg-gray-800/60 backdrop-blur-sm border border-gray-700/50 rounded-xl p-6 hover:bg-gray-800/80 transition-all duration-300">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-white">Pending Approvals</h3>
+                <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>
+              </div>
+              <div className="space-y-4">
                 {[
                   {
                     project: "Milestone Project - Alpha",
                     task: "Task validation required",
                     time: "2 hrs ago",
                     from: "Client 2",
+                    priority: "high",
                   },
                   {
                     project: "Milestone Project - Beta",
                     task: "Task validation required",
                     time: "2 hrs ago",
                     from: "Client 3",
+                    priority: "medium",
                   },
                   {
                     project: "Milestone Project - Delta",
                     task: "Task validation required",
                     time: "2 hrs ago",
                     from: "Client 1",
+                    priority: "low",
                   },
                 ].map((item, index) => (
                   <div
                     key={index}
-                    className="flex items-center justify-between"
+                    className="group p-4 bg-gray-700/30 rounded-lg border border-gray-600/30 hover:border-blue-500/50 hover:bg-gray-700/50 transition-all duration-200"
                   >
-                    <div className="flex-1">
-                      <div className="text-sm font-medium">{item.project}</div>
-                      <div className="text-xs text-gray-400">{item.task}</div>
-                      <div className="flex items-center space-x-4 text-xs text-gray-500 mt-1">
-                        <span>Time: {item.time}</span>
-                        <span>From: {item.from}</span>
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h4 className="text-sm font-medium text-white">{item.project}</h4>
+                          <div className={`w-2 h-2 rounded-full ${
+                            item.priority === 'high' ? 'bg-red-400' : 
+                            item.priority === 'medium' ? 'bg-yellow-400' : 'bg-green-400'
+                          }`}></div>
+                        </div>
+                        <p className="text-xs text-gray-400 mb-2">{item.task}</p>
+                        <div className="flex items-center gap-3 text-xs text-gray-500">
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            {item.time}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <User className="w-3 h-3" />
+                            {item.from}
+                          </span>
+                        </div>
                       </div>
                     </div>
-                    <button className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-sm font-medium">
-                      Review
+                    <button className="w-full bg-blue-600/80 hover:bg-blue-600 backdrop-blur-sm px-4 py-2 rounded-lg text-sm font-medium text-white transition-all duration-200 group-hover:scale-[1.02]">
+                      Review & Approve
                     </button>
                   </div>
                 ))}
@@ -345,16 +379,21 @@ const DashboardClient: React.FC = () => {
             </div>
 
             {/* Quick Actions */}
-            <div className="space-y-3">
-              <h3 className="text-lg font-semibold">Quick Actions</h3>
-              <button className="w-full bg-blue-600 hover:bg-blue-700 rounded-lg py-3 px-4 flex items-center justify-center space-x-2 font-medium">
-                <Plus className="w-4 h-4" />
-                <span>New Escrow</span>
-              </button>
-              <button className="w-full bg-gray-700 hover:bg-gray-600 rounded-lg py-3 px-4 flex items-center justify-center space-x-2 font-medium">
-                <Download className="w-4 h-4" />
-                <span>Release Funds</span>
-              </button>
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-white">Quick Actions</h3>
+              <div className="grid grid-cols-1 gap-3">
+                <button className="group flex items-center justify-center gap-3 bg-blue-600/80 hover:bg-blue-600 backdrop-blur-sm border border-blue-500/30 rounded-xl py-4 px-6 font-semibold text-white transition-all duration-200 hover:scale-[1.02] hover:shadow-lg hover:shadow-blue-600/25">
+                  <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform duration-200" />
+                  <span>Create New Escrow</span>
+                  <ArrowUpRight className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                </button>
+                
+                <button className="group flex items-center justify-center gap-3 bg-gray-700/60 hover:bg-gray-700 backdrop-blur-sm border border-gray-600/50 rounded-xl py-4 px-6 font-semibold text-white transition-all duration-200 hover:scale-[1.02] hover:shadow-lg hover:shadow-gray-700/25">
+                  <Download className="w-5 h-5 group-hover:translate-y-0.5 transition-transform duration-200" />
+                  <span>Release Funds</span>
+                  <ArrowDownRight className="w-4 h-4 group-hover:translate-x-0.5 group-hover:translate-y-0.5 transition-transform" />
+                </button>
+              </div>
             </div>
           </div>
         </div>

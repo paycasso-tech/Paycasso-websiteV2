@@ -13,6 +13,7 @@ import { Transactions } from "@/components/dashboard/wallet/transactions";
 import { EscrowAgreements } from "@/components/dashboard/agreements/escrow-agreements";
 import { useRouter } from "next/navigation";
 import { NewEscrowButton } from "@/components/dashboard/agreements/createAgreement/create-agreement";
+import InteractiveSidebar from "@/components/dashboard/sidebar";
 
 const PaycassoAgreements = () => {
   const router = useRouter();
@@ -49,40 +50,7 @@ const PaycassoAgreements = () => {
       style={{ fontFamily: "Inter, sans-serif" }}
     >
       {/* Sidebar */}
-      <div className="fixed left-0 top-0 h-full w-16 bg-gray-800 flex flex-col items-center py-6 space-y-6">
-        <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
-          <div className="w-4 h-4 bg-gray-900 rounded grid grid-cols-2 gap-0.5">
-            <div className="bg-white rounded-sm"></div>
-            <div className="bg-white rounded-sm"></div>
-            <div className="bg-white rounded-sm"></div>
-            <div className="bg-white rounded-sm"></div>
-          </div>
-        </div>
-        <div className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white cursor-pointer">
-          <div className="w-6 h-1 bg-current rounded"></div>
-        </div>
-        <div className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white cursor-pointer">
-          <div className="w-6 h-6 border-2 border-current rounded"></div>
-        </div>
-        <div className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white cursor-pointer">
-          <div className="w-6 h-6 relative">
-            <div className="w-4 h-4 border-2 border-current rounded-full absolute top-0 left-1"></div>
-            <div className="w-2 h-2 bg-current rounded-full absolute bottom-0 left-2"></div>
-          </div>
-        </div>
-        <div className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white cursor-pointer">
-          <div className="w-6 h-6 border-2 border-current rounded-lg flex items-center justify-center">
-            <div className="w-2 h-2 bg-current rounded-full"></div>
-          </div>
-        </div>
-        <div className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white cursor-pointer">
-          <div className="w-6 h-6 flex flex-col space-y-1">
-            <div className="w-full h-1 bg-current rounded"></div>
-            <div className="w-full h-1 bg-current rounded"></div>
-            <div className="w-4 h-1 bg-current rounded"></div>
-          </div>
-        </div>
-      </div>
+      <InteractiveSidebar/>
 
       {/* Main Content */}
       <div className="ml-16 p-8">

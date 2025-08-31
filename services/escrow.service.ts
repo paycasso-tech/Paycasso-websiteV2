@@ -32,24 +32,22 @@ export const createEscrowService = (supabase: SupabaseClient) => ({
     depositor_wallet:wallets!escrow_agreements_depositor_wallet_id_fkey (
       profile_id,
       wallet_address,
-      profiles!wallets_profile_id_fkey (
-        name,
-        full_name,
-        company_name,        
-        email,
-        auth_user_id
-      )
+              profiles!wallets_profile_id_fkey (
+          name,
+          company_name,        
+          email,
+          auth_user_id
+        )
     ),
     beneficiary_wallet:wallets!escrow_agreements_beneficiary_wallet_id_fkey (
       profile_id,
       wallet_address,
-      profiles!wallets_profile_id_fkey (
-        name,
-        full_name,
-        email,
-        company_name,
-        auth_user_id
-      )
+              profiles!wallets_profile_id_fkey (
+          name,
+          email,
+          company_name,
+          auth_user_id
+        )
     ),
     transactions:transactions!escrow_agreements_transaction_id_fkey (
       amount,

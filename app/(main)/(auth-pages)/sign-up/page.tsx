@@ -1,13 +1,46 @@
+"use client";
+
 import { signUpAction } from "@/app/(main)/actions";
 import { FormMessage, Message } from "@/components/dashboard/form-message";
 import { SubmitButton } from "@/components/dashboard/submit-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
-// Make the page function async
-export default async function Signup({ searchParams }: { searchParams: Promise<Message> }) {
-  const resolvedSearchParams = await searchParams;
+export default function Signup({ searchParams }: { searchParams: Promise<Message> }) {
+  const [message, setMessage] = useState<Message>({});
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
+
+  useEffect(() => {
+    searchParams.then(setMessage);
+  }, [searchParams]);
+
+  const handleSignUp = async (formData: FormData) => {
+    setIsLoading(true);
+    try {
+      const result = await signUpAction(formData);
+      
+      // If the action returns an error, it will be handled by the form
+      if (result && typeof result === 'object' && 'error' in result) {
+        // Error is already handled by the form
+        return;
+      }
+      
+      // If successful, redirect to the specified location
+      if (result && typeof result === 'object' && 'success' in result && 'redirectTo' in result) {
+        const redirectResult = result as { success: boolean; redirectTo: string };
+        router.push(redirectResult.redirectTo);
+      }
+    } catch (error) {
+      console.error("Sign up error:", error);
+      // Handle any unexpected errors
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="flex flex-col gap-6">
@@ -71,14 +104,13 @@ export default async function Signup({ searchParams }: { searchParams: Promise<M
             />
           </div>
 
-          <FormMessage message={resolvedSearchParams} />
+          <FormMessage message={message} />
 
           <SubmitButton
             className="w-full"
-            formAction={async (formData) => {
-              await signUpAction(formData);
-            }}
+            formAction={handleSignUp}
             pendingText="Creating account..."
+            disabled={isLoading}
           >
             Sign up
           </SubmitButton>

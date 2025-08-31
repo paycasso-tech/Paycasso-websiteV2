@@ -22,7 +22,7 @@ export default function AuthButton() {
         if (currentUser) {
           const { data: profileData } = await supabase
             .from("profiles")
-            .select("full_name")
+            .select("name")
             .eq("auth_user_id", currentUser.id)
             .single();
           setProfile(profileData);
@@ -85,7 +85,7 @@ export default function AuthButton() {
   }
   return user ? (
     <div className="flex items-center gap-4">
-      Hey, {profile?.full_name || user.email || 'Guest'}!
+      Hey, {profile?.name || user.email || 'Guest'}!
       <form action={signOutAction}>
         <Button type="submit" variant={"secondary"} className="text-black hover:bg-gray-300">
           Sign out
