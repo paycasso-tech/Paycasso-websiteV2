@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "motion/react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 const transition = {
   type: "spring",
@@ -17,14 +18,17 @@ export const MenuItem = ({
   active,
   item,
   children,
+  route,
 }: {
   setActive: (item: string) => void;
   active: string | null;
   item: string;
   children?: React.ReactNode;
+  route: string;
 }) => {
+  const router = useRouter();
   return (
-    <div onMouseEnter={() => setActive(item)} className="relative">
+    <div onMouseEnter={() => setActive(item)} className="relative" onClick={()=>{router.push(route)}}>
       <motion.p
         transition={{ duration: 0.3 }}
         className="cursor-pointer text-white hover:text-gray-200 transition-colors duration-300"
@@ -83,7 +87,7 @@ export const Menu = ({
   const getNavbarWidth = () => {
     const maxScroll = 500; // Maximum scroll distance to consider
     const minWidth = 600; // Initial width in pixels
-    const maxWidth = 400; // Final expanded width in pixels
+    const maxWidth = 480; // Final expanded width in pixels
 
     const scrollProgress = Math.min(scrollY / maxScroll, 1);
     const currentWidth = minWidth + (maxWidth - minWidth) * scrollProgress;
