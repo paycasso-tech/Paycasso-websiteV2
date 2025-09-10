@@ -3,7 +3,7 @@
 import type { PostgrestError, RealtimePostgresUpdatePayload } from "@supabase/supabase-js";
 import type { EscrowListProps, EscrowAgreementWithDetails } from "@/types/escrow";
 import { useEffect, useCallback, useState } from "react";
-import { RotateCw } from "lucide-react";
+import { RotateCw, FileText, TrendingUp, AlertCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -14,6 +14,7 @@ import { createAgreementService } from "@/services/agreement.service";
 import { parseAmount } from "@/lib/utils/amount";
 import EscrowAgreementsTable from "@/components/dashboard/agreements/agreements-table";
 import { useRouter } from "next/navigation";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const baseUrl = process.env.NEXT_PUBLIC_VERCEL_URL
   ? process.env.NEXT_PUBLIC_VERCEL_URL
@@ -67,6 +68,14 @@ export const EscrowAgreements = () => {
     }, [supabase, router]);
   
   const { agreements, loading, error, refresh } = useEscrowAgreements({userId, profileId, walletId});
+
+  // Calculate stats
+  const stats = {
+    total: agreements.length,
+    inProgress: agreements.filter(a => ['INITIATED', 'OPEN', 'LOCKED', 'PENDING'].includes(a.status)).length,
+    completed: agreements.filter(a => a.status === 'CLOSED').length,
+    disputed: agreements.filter(a => a.status === 'DISPUTED').length,
+  };
 
   const depositFunds = async (agreement: EscrowAgreementWithDetails) => {
     try {
@@ -390,14 +399,26 @@ export const EscrowAgreements = () => {
   // Show loading state when profileId is not yet available
   if (!profileId) {
     return (
-      <Card className="break-inside-avoid mb-4 w-full">
-        <CardHeader>
-          <CardTitle>Escrow Agreements</CardTitle>
+      <Card className="bg-slate-800/60 border-slate-700/50 backdrop-blur-sm shadow-lg">
+        <CardHeader className="pb-4">
+          <div className="flex items-center justify-between">
+            <Skeleton className="w-48 h-7 bg-slate-700/60 rounded-lg" />
+            <Skeleton className="w-8 h-8 bg-slate-700/60 rounded-lg" />
+          </div>
         </CardHeader>
-        <CardContent>
-          <div className="text-center py-4">
-            <Skeleton className="w-[200px] h-[24px] rounded-full mx-auto mb-2" />
-            <Skeleton className="w-[150px] h-[20px] rounded-full mx-auto" />
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-4 gap-4 mb-6">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="bg-slate-700/40 rounded-lg p-4">
+                <Skeleton className="w-8 h-8 bg-slate-600/60 rounded-lg mx-auto mb-2" />
+                <Skeleton className="w-16 h-4 bg-slate-600/60 rounded mx-auto" />
+              </div>
+            ))}
+          </div>
+          <div className="space-y-3">
+            {[...Array(3)].map((_, i) => (
+              <Skeleton key={i} className="w-full h-16 bg-slate-700/40 rounded-lg" />
+            ))}
           </div>
         </CardContent>
       </Card>
@@ -406,46 +427,114 @@ export const EscrowAgreements = () => {
 
   if (error) {
     return (
-      <Card className="break-inside-avoid mb-4 w-full">
-        <CardHeader>
-          <CardTitle>Escrow Agreements</CardTitle>
+      <Card className="bg-slate-800/60 border-slate-700/50 backdrop-blur-sm shadow-lg">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-white flex items-center gap-2">
+            <AlertCircle className="w-5 h-5 text-red-400" />
+            Escrow Agreements
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-center text-destructive py-4">
-            <p>{error}</p>
-            <Button variant="outline" onClick={refresh} className="mt-2">
-              Try Again
-            </Button>
-          </div>
+          <Alert className="border-red-500/20 bg-red-500/10">
+            <AlertCircle className="h-4 w-4 text-red-400" />
+            <AlertDescription className="text-red-200">
+              {error}
+            </AlertDescription>
+          </Alert>
+          <Button 
+            variant="outline" 
+            onClick={refresh} 
+            className="mt-4 border-slate-600 hover:bg-slate-700"
+          >
+            Try Again
+          </Button>
         </CardContent>
       </Card>
     );
   };
 
   return (
-    <Card className="break-inside-avoid mb-4 w-full">
-      <CardHeader className="flex flex-row items-center justify-between">
-        {loading ? (
-          <Skeleton className="w-[250px] h-[24px] rounded-full" />
-        ) : (
-          <CardTitle>Escrow Agreements</CardTitle>
-        )}
-        {loading ? (
-          <Skeleton className="w-[32px] h-[32px] rounded-full" />
-        ) : (
-          <Button variant="ghost" size="icon" onClick={refresh}>
-            <RotateCw className="h-4 w-4" />
+    <Card className="bg-slate-800/60 border-slate-700/50 backdrop-blur-sm shadow-lg">
+      <CardHeader className="pb-4">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-white flex items-center gap-3">
+            <div className="p-2 bg-blue-500/20 rounded-lg">
+              <FileText className="w-5 h-5 text-blue-400" />
+            </div>
+            Escrow Agreements
+          </CardTitle>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={refresh}
+            className="hover:bg-slate-700/60 text-slate-400 hover:text-white"
+            disabled={loading}
+          >
+            <RotateCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
           </Button>
-        )}
+        </div>
       </CardHeader>
-      <CardContent>
-        {agreements.length === 0 ? (
-          <div className="text-center text-muted-foreground py-4">
+      
+      <CardContent className="space-y-6">
+        {/* Stats Overview */}
+        <div className="grid grid-cols-4 gap-4">
+          <div className="bg-slate-700/40 border border-slate-600/30 rounded-lg p-4 text-center">
+            <div className="flex items-center justify-center w-8 h-8 mx-auto mb-2 bg-blue-500/20 rounded-lg">
+              <FileText className="w-4 h-4 text-blue-400" />
+            </div>
             {loading ? (
-              <Skeleton className="w-[160px] h-[24px] rounded-full" />
+              <Skeleton className="w-8 h-6 bg-slate-600/60 rounded mx-auto mb-1" />
             ) : (
-              <p>No agreements found</p>
+              <div className="text-xl font-bold text-white mb-1">{stats.total}</div>
             )}
+            <div className="text-xs text-slate-400">Total</div>
+          </div>
+          
+          <div className="bg-slate-700/40 border border-slate-600/30 rounded-lg p-4 text-center">
+            <div className="flex items-center justify-center w-8 h-8 mx-auto mb-2 bg-amber-500/20 rounded-lg">
+              <TrendingUp className="w-4 h-4 text-amber-400" />
+            </div>
+            {loading ? (
+              <Skeleton className="w-8 h-6 bg-slate-600/60 rounded mx-auto mb-1" />
+            ) : (
+              <div className="text-xl font-bold text-amber-400 mb-1">{stats.inProgress}</div>
+            )}
+            <div className="text-xs text-slate-400">In Progress</div>
+          </div>
+          
+          <div className="bg-slate-700/40 border border-slate-600/30 rounded-lg p-4 text-center">
+            <div className="flex items-center justify-center w-8 h-8 mx-auto mb-2 bg-emerald-500/20 rounded-lg">
+              <div className="w-4 h-4 bg-emerald-400 rounded-full"></div>
+            </div>
+            {loading ? (
+              <Skeleton className="w-8 h-6 bg-slate-600/60 rounded mx-auto mb-1" />
+            ) : (
+              <div className="text-xl font-bold text-emerald-400 mb-1">{stats.completed}</div>
+            )}
+            <div className="text-xs text-slate-400">Completed</div>
+          </div>
+          
+          <div className="bg-slate-700/40 border border-slate-600/30 rounded-lg p-4 text-center">
+            <div className="flex items-center justify-center w-8 h-8 mx-auto mb-2 bg-red-500/20 rounded-lg">
+              <AlertCircle className="w-4 h-4 text-red-400" />
+            </div>
+            {loading ? (
+              <Skeleton className="w-8 h-6 bg-slate-600/60 rounded mx-auto mb-1" />
+            ) : (
+              <div className="text-xl font-bold text-red-400 mb-1">{stats.disputed}</div>
+            )}
+            <div className="text-xs text-slate-400">Disputed</div>
+          </div>
+        </div>
+
+        {/* Agreements Table */}
+        {agreements.length === 0 && !loading ? (
+          <div className="text-center py-12">
+            <div className="w-16 h-16 mx-auto mb-4 bg-slate-700/40 rounded-full flex items-center justify-center">
+              <FileText className="w-8 h-8 text-slate-500" />
+            </div>
+            <p className="text-slate-400 text-lg mb-2">No agreements found</p>
+            <p className="text-slate-500 text-sm">Create your first escrow agreement to get started</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -454,6 +543,7 @@ export const EscrowAgreements = () => {
               profileId={profileId}
               userId={userId}
               refresh={refresh}
+              loading={loading}
             />
           </div>
         )}

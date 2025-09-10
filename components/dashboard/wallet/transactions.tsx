@@ -66,12 +66,14 @@ async function syncTransactions(
     }
   );
 
+  
   const parsedTransactions: WalletTransactionsResponse =
-    await transactionsResponse.json();
+  await transactionsResponse.json();
 
   if (parsedTransactions.error || !parsedTransactions.transactions) {
     return [];
   }
+  console.log(parsedTransactions);
 
   // 2. Get existing transactions from database
   const { data: existingTransactions } = await supabase
