@@ -64,7 +64,7 @@ interface EscrowAgreement {
   depositor_wallet_id: string;
   transaction_id: string;
   status: string;
-  terms: any;
+  terms: unknown;
   created_at: string;
   updated_at: string;
 }

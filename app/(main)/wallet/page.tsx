@@ -601,8 +601,7 @@ interface WalletData {
   wallet_address: string;
   balance: string;
   currency: string;
-<<<<<<< Updated upstream
-  profiles?: any;
+  profiles?: unknown;
 }
 
 interface UserProfile {
@@ -611,23 +610,20 @@ interface UserProfile {
   phone?: string;
   full_name?: string;
   avatar_url?: string;
-=======
 }
 
-interface CryptoData {
+interface SupabaseUser {
   id: string;
-  symbol: string;
-  name: string;
-  current_price: number;
-  price_change_percentage_24h: number;
-  sparkline_in_7d: { price: number[] };
->>>>>>> Stashed changes
+  email: string | null;
+  created_at: string;
+  user_metadata: {
+    full_name?: string;
+  };
 }
 
 export default function WalletInfoPage() {
   const [wallet, setWallet] = useState<WalletData | null>(null);
-<<<<<<< Updated upstream
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<SupabaseUser | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
 =======
 >>>>>>> Stashed changes
@@ -726,8 +722,12 @@ export default function WalletInfoPage() {
         return;
       }
 
-<<<<<<< Updated upstream
-      setUser(currentUser);
+      setUser({
+        id: currentUser.id,
+        email: currentUser.email ?? null,
+        created_at: currentUser.created_at,
+        user_metadata: currentUser.user_metadata,
+      });
 
       // Fetch user profile
       const { data: profileData } = await supabase
