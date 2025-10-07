@@ -11,6 +11,8 @@
   "dependencies": {
     "@circle-fin/developer-controlled-wallets": "^8.4.0",
     "@circle-fin/smart-contract-platform": "^8.4.0",
+    "@clerk/nextjs": "^6.32.0",
+    "@coinbase/coinbase-sdk": "^0.25.0",
     "@google/generative-ai": "^0.24.1",
     "@radix-ui/react-alert-dialog": "^1.1.14",
     "@radix-ui/react-dialog": "^1.1.14",
@@ -31,6 +33,7 @@
     "framer-motion": "^12.23.11",
     "lucide-react": "^0.525.0",
     "mammoth": "^1.10.0",
+    "mongoose": "^8.18.1",
     "motion": "^12.23.9",
     "next": "^15.4.4",
     "pdf-parse": "^1.1.1",

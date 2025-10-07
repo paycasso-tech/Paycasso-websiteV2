@@ -136,7 +136,7 @@ async function syncTransactions(
   const uniqueTransactions =
     allTransactions?.reduce((acc, current) => {
       const existingTransaction = acc.find(
-        (item: { circle_transaction_id: any }) =>
+        (item: { circle_transaction_id: unknown }) =>
           item.circle_transaction_id === current.circle_transaction_id
       );
       if (!existingTransaction) {
@@ -188,9 +188,9 @@ const getStatusIcon = (status: string) => {
 export const Transactions = () => {
   const [data, setData] = useState<Transaction[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [wallet, setWallet] = useState<any>(null);
+  const [wallet, setWallet] = useState<unknown>(null);
   const [loading, setLoading] = useState(true);
-  const [profile, setProfile] = useState<any>(null);
+  const [profile, setProfile] = useState<unknown>(null);
   const [dataInitialized, setDataInitialized] = useState(false);
   const router = useRouter();
 
@@ -327,11 +327,32 @@ export const Transactions = () => {
 
   if (data && data.length < 1) {
     return (
-      <p className="text-xl text-muted-foreground cursor-pointer">
-        No transactions found
-      </p>
+      <div className="relative bg-white/[0.03] backdrop-blur-xl backdrop-saturate-150 border border-white/20 rounded-4xl p-6 shadow-lg shadow-black/10 overflow-hidden">
+        {/* Multi-layer glass overlay */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-0 left-0 right-0 h-[50%] bg-gradient-to-b from-white/10 to-transparent"></div>
+          <div className="absolute inset-0 bg-gradient-to-br from-black/5 via-transparent to-transparent"></div>
+          <div className="absolute bottom-0 left-0 right-0 h-[30%] bg-gradient-to-t from-black/5 to-transparent"></div>
+        </div>
+        {/* Inner glow shadow */}
+        <div className="absolute inset-0 rounded-2xl shadow-inner shadow-black/5"></div>
+
+        <div className="relative z-10">
+          <div className="pb-4 border-b border-white/10">
+            <h3 className="text-lg font-semibold text-white">
+              Recent Transactions
+            </h3>
+          </div>
+          <div className="flex items-center justify-center py-20">
+            <p className="text-xl text-gray-400">No transactions found</p>
+          </div>
+        </div>
+      </div>
     );
   }
+
+
+
 
   return (
     <>
