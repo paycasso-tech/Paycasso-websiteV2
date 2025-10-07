@@ -625,8 +625,6 @@ export default function WalletInfoPage() {
   const [wallet, setWallet] = useState<WalletData | null>(null);
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-=======
->>>>>>> Stashed changes
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [copiedField, setCopiedField] = useState<string | null>(null);
@@ -739,8 +737,6 @@ export default function WalletInfoPage() {
       setUserProfile(profileData);
 
       // Fetch wallet data
-=======
->>>>>>> Stashed changes
       const { data: walletFromDB, error: walletError } = await supabase
         .from("wallets")
         .select(
