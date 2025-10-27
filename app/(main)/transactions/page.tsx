@@ -1,6 +1,5 @@
 "use client"
 import { useEffect, useState } from "react";
-import { createSupabaseBrowserClient } from "@/lib/supabase/browser-client";
 import { useRouter } from "next/navigation";
 import {
   Activity,
@@ -65,7 +64,6 @@ export default function TransactionsPage() {
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const router = useRouter();
-  const supabase = createSupabaseBrowserClient();
 
   useEffect(() => {
     fetchTransactions();
@@ -74,46 +72,42 @@ export default function TransactionsPage() {
   const fetchTransactions = async () => {
     try {
       setError(null);
-      const { data: { user: currentUser } } = await supabase.auth.getUser();
-      
-      if (!currentUser) {
+
+      // Check NextAuth session
+      const sessionResponse = await fetch("/api/auth/session");
+      const session = await sessionResponse.json();
+
+      if (!session?.user) {
         router.push("/sign-in");
         return;
       }
 
-      setUser(currentUser);
+      setUser(session.user);
 
-      // Get wallet info
-      const { data: walletData, error: walletError } = await supabase
-        .from("wallets")
-        .select(`
-          id, 
-          circle_wallet_id, 
-          blockchain, 
-          wallet_address,
-          profiles!inner(auth_user_id)
-        `)
-        .eq("profiles.auth_user_id", currentUser.id)
-        .single();
+      // Get wallet info from PostgreSQL via API
+      const walletResponse = await fetch("/api/user/wallet");
+      const walletData = await walletResponse.json();
 
-      if (walletError) {
+      if (walletData.error) {
         setError("Failed to fetch wallet information");
         return;
       }
 
-      setWallet(walletData);
+      setWallet(walletData.wallet);
 
       // Fetch transactions from Circle API
-      if (walletData?.circle_wallet_id) {
+      if (walletData.wallet?.circle_wallet_id) {
         try {
-          const transactionsResponse = await fetch('/api/wallet/transactions', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ walletId: walletData.circle_wallet_id })
+          const transactionsResponse = await fetch("/api/wallet/transactions", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              walletId: walletData.wallet.circle_wallet_id,
+            }),
           });
 
           const transactionsData = await transactionsResponse.json();
-          
+
           if (transactionsData.transactions) {
             setCircleTransactions(transactionsData.transactions);
           }
@@ -122,19 +116,15 @@ export default function TransactionsPage() {
         }
       }
 
-      // Fetch transactions from database
-      const { data: dbTransactions, error: transactionsError } = await supabase
-        .from("transactions")
-        .select("*")
-        .eq("wallet_id", walletData.id)
-        .order("created_at", { ascending: false });
+      // Fetch transactions from PostgreSQL database
+      const dbTransactionsResponse = await fetch(
+        `/api/wallet/db-transactions?walletId=${walletData.wallet.id}`
+      );
+      const dbTransactionsData = await dbTransactionsResponse.json();
 
-      if (transactionsError) {
-        console.error("Database transactions error:", transactionsError);
-      } else if (dbTransactions) {
-        setTransactions(dbTransactions);
+      if (dbTransactionsData.transactions) {
+        setTransactions(dbTransactionsData.transactions);
       }
-
     } catch (error) {
       console.error("Error fetching transactions:", error);
       setError("Failed to fetch transactions. Please try again later.");
@@ -142,6 +132,7 @@ export default function TransactionsPage() {
       setLoading(false);
     }
   };
+
 
   const refreshTransactions = async () => {
     setRefreshing(true);

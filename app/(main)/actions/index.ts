@@ -1,38 +1,24 @@
 "use server";
 
 import { encodedRedirect } from "@/lib/utils/utils";
-import { createClient, createServiceClient } from "@/lib/utils/supabase/server";
+import { query } from "@/lib/db/postgres";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { hasEnvVars } from "@/lib/utils/supabase/check-env-vars";
+import bcrypt from "bcryptjs";
+import { signIn, signOut } from "@/auth";
+import { AuthError } from "next-auth";
 
 const baseUrl = process.env.NEXT_PUBLIC_VERCEL_URL
-  ? process.env.NEXT_PUBLIC_VERCEL_URL
+  ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
   : "http://localhost:3000";
 
 export const signUpAction = async (formData: FormData) => {
   const email = formData.get("email")?.toString();
   const password = formData.get("password")?.toString();
-  const companyName = formData.get("company-name")?.toString().trim();
-  const fullName = formData.get("full-name")?.toString().trim();
+  const companyName = formData.get("company-name")?.toString()?.trim();
+  const fullName = formData.get("full-name")?.toString()?.trim();
 
-  // Check if environment variables are properly configured
-  if (!hasEnvVars) {
-    console.error("Supabase environment variables are not configured");
-    return { error: "Server configuration error. Please try again later." };
-  }
-
-  let supabase;
-  try {
-    supabase = await createClient();
-  } catch (error) {
-    console.error("Failed to create Supabase client:", error);
-    return { error: "Unable to connect to authentication service. Please try again later." };
-  }
-
-  const headerStore = await headers(); 
-  const origin = (await headers()).get("origin");
-
+  // Validation
   if (fullName && (fullName.length < 3 || fullName.length > 255)) {
     return { error: "Full name must be between 3 and 255 characters" };
   }
@@ -45,280 +31,278 @@ export const signUpAction = async (formData: FormData) => {
     return { error: "Email and password are required" };
   }
 
-  try {
-    const { error, data: authData } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: `${origin}/auth/callback`,
-      },
-    });
+  if (password.length < 6) {
+    return { error: "Password must be at least 6 characters" };
+  }
 
-    if (error) {
-      console.error(error.code + " " + error.message);
-      return encodedRedirect("error", "/sign-up", error.message);
+  try {
+    // Check if user already exists
+    const existingUsers = await query<{ id: string }>(
+      "SELECT id FROM users WHERE email = $1",
+      [email]
+    );
+
+    if (existingUsers.length > 0) {
+      return { error: "User with this email already exists" };
     }
 
+    // Hash password
+    const passwordHash = await bcrypt.hash(password, 12);
+
+    // Create user
+    const newUsers = await query<{ id: string; email: string }>(
+      "INSERT INTO users (email, password_hash) VALUES ($1, $2) RETURNING id, email",
+      [email, passwordHash]
+    );
+
+    const newUser = newUsers[0];
+
+    if (!newUser) {
+      return { error: "Failed to create user" };
+    }
+
+    console.log("✅ User created:", newUser.id);
+
+    // Create wallet set via Circle API
     try {
-      const createdWalletSetResponse = await fetch(`${baseUrl}/api/wallet-set`, {
-        method: "PUT",
-        body: JSON.stringify({
-          entityName: email,
-        }),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      const createdWalletSetResponse = await fetch(
+        `${baseUrl}/api/wallet-set`,
+        {
+          method: "PUT",
+          body: JSON.stringify({ entityName: email }),
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+
+      if (!createdWalletSetResponse.ok) {
+        throw new Error("Wallet set creation failed");
+      }
 
       const createdWalletSet = await createdWalletSetResponse.json();
+      console.log("✅ Wallet set created:", createdWalletSet.id);
 
+      // Create wallet via Circle API
       const createdWalletResponse = await fetch(`${baseUrl}/api/wallet`, {
         method: "POST",
-        body: JSON.stringify({
-          walletSetId: createdWalletSet.id,
-        }),
-        headers: {
-          "Content-Type": "application/json",
-        },
+        body: JSON.stringify({ walletSetId: createdWalletSet.id }),
+        headers: { "Content-Type": "application/json" },
       });
 
+      if (!createdWalletResponse.ok) {
+        throw new Error("Wallet creation failed");
+      }
+
       const createdWallet = await createdWalletResponse.json();
+      console.log("✅ Wallet created:", createdWallet.id);
 
-      // Create profile using service client to bypass RLS
-      if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
-        console.error("SUPABASE_SERVICE_ROLE_KEY is not configured");
-        return { error: "Server configuration error. Please try again later." };
+      // Create profile
+      const newProfiles = await query<{ id: number }>(
+        "INSERT INTO profiles (user_id, email, name, company_name) VALUES ($1, $2, $3, $4) RETURNING id",
+        [newUser.id, email, fullName || null, companyName || null]
+      );
+
+      const newProfile = newProfiles[0];
+
+      if (!newProfile) {
+        throw new Error("Could not create user profile");
       }
 
-      const serviceClient = createServiceClient();
-             const { data: profileData, error: profileError } = await serviceClient
-         .from("profiles")
-         .upsert({
-           auth_user_id: authData.user?.id,
-           email,
-           name: fullName,
-           company_name: companyName
-         }, {
-           onConflict: 'auth_user_id'
-         })
-         .select()
-         .single();
+      console.log("✅ Profile created:", newProfile.id);
 
-      if (profileError) {
-        console.error("Error while attempting to create user profile:", profileError);
-                 console.error("Profile data that failed:", {
-           auth_user_id: authData.user?.id,
-           email,
-           name: fullName,
-           company_name: companyName
-         });
-        return { error: "Could not create user profile" };
-      }
+      // Create wallet entry
+      await query(
+        `INSERT INTO wallets (
+          profile_id, circle_wallet_id, wallet_type, wallet_set_id,
+          wallet_address, account_type, blockchain, currency
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+        [
+          newProfile.id,
+          createdWallet.id,
+          createdWallet.custodyType,
+          createdWalletSet.id,
+          createdWallet.address,
+          createdWallet.accountType,
+          createdWallet.blockchain,
+          "USDC",
+        ]
+      );
 
-      console.log("Profile created successfully:", profileData);
-
-      // Validate that we have all required data
-      if (!profileData?.id) {
-        console.error("Profile data is missing or invalid:", profileData);
-        return { error: "Profile data is invalid" };
-      }
-
-      if (!createdWallet?.id || !createdWalletSet?.id) {
-        console.error("Wallet or wallet set data is missing:", { createdWallet, createdWalletSet });
-        return { error: "Wallet setup data is invalid" };
-      }
-
-      console.log("Creating wallet with profile_id:", profileData.id);
-
-             const { error: walletError } = await serviceClient
-         .from("wallets")
-         .insert({
-           profile_id: profileData.id,
-           circle_wallet_id: createdWallet.id,
-           wallet_type: createdWallet.custodyType,
-           wallet_set_id: createdWalletSet.id,
-           wallet_address: createdWallet.address,
-           account_type: createdWallet.accountType,
-           blockchain: createdWallet.blockchain,
-           currency: "USDC",
-         })
-         .select();
-
-      if (walletError) {
-        console.error(
-          "Error while attempting to create user's wallet:",
-          walletError,
-        );
-        return { error: "Could not create wallet" };
-      }
+      console.log("✅ Wallet linked to profile");
     } catch (error: any) {
       console.error("Error during wallet creation:", error.message);
+      // Rollback: Delete user if wallet creation fails
+      await query("DELETE FROM users WHERE id = $1", [newUser.id]);
       return { error: "Failed to set up user account. Please try again." };
     }
   } catch (error: any) {
-    console.error("Network error during sign up:", error.message);
-    return { error: "Network error. Please check your connection and try again." };
+    console.error("Sign up error:", error.message);
+    return { error: "Failed to create account. Please try again." };
   }
 
-  return { success: true, redirectTo: "/dashboard" };
+  // Success - redirect to sign-in
+  return { success: true, redirectTo: "/sign-in" };
 };
 
 export const signInAction = async (formData: FormData) => {
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
 
-  // Check if environment variables are properly configured
-  if (!hasEnvVars) {
-    console.error("Supabase environment variables are not configured");
-    return { error: "Server configuration error. Please try again later." };
-  }
+  console.log("📧 Sign-in attempt for:", email);
 
-  let supabase;
-  try {
-    supabase = await createClient();
-  } catch (error) {
-    console.error("Failed to create Supabase client:", error);
-    return { error: "Unable to connect to authentication service. Please try again later." };
+  if (!email || !password) {
+    return { error: "Email and password are required" };
   }
 
   try {
-    const { data: user, error } = await supabase.auth.signInWithPassword({
+    // This will trigger the authorize function in auth.ts
+    await signIn("credentials", {
       email,
       password,
+      redirectTo: "/dashboard", // Important: specify redirect here
     });
 
-    if (error) {
-      return encodedRedirect("error", "/sign-in", error.message);
+    // If we reach here, sign-in was successful
+    // NextAuth will handle the redirect automatically
+    return { success: true };
+  } catch (error: any) {
+    console.error("❌ Sign-in error:", error);
+
+    // Handle specific NextAuth errors
+    if (error.type === "CredentialsSignin") {
+      return { error: "Invalid email or password" };
     }
 
-    return { success: true, redirectTo: "/dashboard" };
-  } catch (error: any) {
-    console.error("Network error during sign in:", error.message);
-    return { error: "Network error. Please check your connection and try again." };
+    if (error.type === "CallbackRouteError") {
+      return { error: "Authentication failed. Please try again." };
+    }
+
+    // Re-throw redirect errors (NextAuth uses these for navigation)
+    if (error.message?.includes("NEXT_REDIRECT")) {
+      throw error;
+    }
+
+    return { error: "Something went wrong. Please try again." };
   }
 };
 
+
+
 export const forgotPasswordAction = async (formData: FormData) => {
   const email = formData.get("email")?.toString();
-  const origin = (await headers()).get("origin");
-  const callbackUrl = formData.get("callbackUrl")?.toString();
-
-  // Check if environment variables are properly configured
-  if (!hasEnvVars) {
-    console.error("Supabase environment variables are not configured");
-    return { error: "Server configuration error. Please try again later." };
-  }
-
-  let supabase;
-  try {
-    supabase = await createClient();
-  } catch (error) {
-    console.error("Failed to create Supabase client:", error);
-    return { error: "Unable to connect to authentication service. Please try again later." };
-  }
 
   if (!email) {
     return encodedRedirect("error", "/forgot-password", "Email is required");
   }
 
   try {
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${origin}/auth/callback?redirect_to=/dashboard/reset-password`,
-    });
+    // Check if user exists
+    const users = await query<{ id: string }>(
+      "SELECT id FROM users WHERE email = $1",
+      [email]
+    );
 
-    if (error) {
-      console.error(error.message);
+    // Don't reveal if user exists (security best practice)
+    if (users.length === 0) {
       return encodedRedirect(
-        "error",
+        "success",
         "/forgot-password",
-        "Could not reset password",
+        "If an account exists, we sent a password reset link."
       );
     }
 
-    if (callbackUrl) {
-      return redirect(callbackUrl);
-    }
+    // Generate reset token
+    const resetToken = crypto.randomUUID();
+    const expires = new Date(Date.now() + 3600000); // 1 hour
+
+    await query(
+      "INSERT INTO verification_tokens (identifier, token, expires) VALUES ($1, $2, $3) ON CONFLICT (identifier, token) DO UPDATE SET expires = $3",
+      [email, resetToken, expires]
+    );
+
+    // TODO: Send email with reset link
+    // const resetLink = `${baseUrl}/reset-password?token=${resetToken}`;
+    // await sendEmail(email, resetLink);
+
+    console.log(`Password reset token for ${email}:`, resetToken);
 
     return encodedRedirect(
       "success",
       "/forgot-password",
-      "Check your email for a link to reset your password.",
+      "Check your email for a password reset link."
     );
   } catch (error: any) {
-    console.error("Network error during password reset:", error.message);
-    return { error: "Network error. Please check your connection and try again." };
+    console.error("Password reset error:", error.message);
+    return { error: "Failed to process password reset. Please try again." };
   }
 };
 
 export const resetPasswordAction = async (formData: FormData) => {
   const password = formData.get("password") as string;
   const confirmPassword = formData.get("confirmPassword") as string;
-
-  // Check if environment variables are properly configured
-  if (!hasEnvVars) {
-    console.error("Supabase environment variables are not configured");
-    return { error: "Server configuration error. Please try again later." };
-  }
-
-  let supabase;
-  try {
-    supabase = await createClient();
-  } catch (error) {
-    console.error("Failed to create Supabase client:", error);
-    return { error: "Unable to connect to authentication service. Please try again later." };
-  }
+  const token = formData.get("token") as string;
 
   if (!password || !confirmPassword) {
     return encodedRedirect(
       "error",
-      "/dashboard/reset-password",
-      "Password and confirm password are required",
+      "/reset-password",
+      "Password and confirm password are required"
     );
   }
 
   if (password !== confirmPassword) {
     return encodedRedirect(
       "error",
-      "/dashboard/reset-password",
-      "Passwords do not match",
+      "/reset-password",
+      "Passwords do not match"
+    );
+  }
+
+  if (password.length < 6) {
+    return encodedRedirect(
+      "error",
+      "/reset-password",
+      "Password must be at least 6 characters"
     );
   }
 
   try {
-    const { error } = await supabase.auth.updateUser({
-      password: password,
-    });
+    // Verify token
+    const tokens = await query<{ identifier: string; expires: Date }>(
+      "SELECT identifier, expires FROM verification_tokens WHERE token = $1",
+      [token]
+    );
 
-    if (error) {
+    if (tokens.length === 0 || new Date(tokens[0].expires) < new Date()) {
       return encodedRedirect(
         "error",
-        "/dashboard/reset-password",
-        "Password update failed",
+        "/reset-password",
+        "Invalid or expired reset token"
       );
     }
 
-    return encodedRedirect("success", "/dashboard/reset-password", "Password updated");
+    const email = tokens[0].identifier;
+
+    // Update password
+    const passwordHash = await bcrypt.hash(password, 12);
+    await query(
+      "UPDATE users SET password_hash = $1, updated_at = NOW() WHERE email = $2",
+      [passwordHash, email]
+    );
+
+    // Delete used token
+    await query("DELETE FROM verification_tokens WHERE token = $1", [token]);
+
+    return encodedRedirect(
+      "success",
+      "/sign-in",
+      "Password updated successfully"
+    );
   } catch (error: any) {
-    console.error("Network error during password update:", error.message);
-    return { error: "Network error. Please check your connection and try again." };
+    console.error("Password update error:", error.message);
+    return { error: "Failed to update password. Please try again." };
   }
 };
 
 export const signOutAction = async () => {
-  // Check if environment variables are properly configured
-  if (!hasEnvVars) {
-    console.error("Supabase environment variables are not configured");
-    return redirect("/sign-in");
-  }
-
-  let supabase;
-  try {
-    supabase = await createClient();
-    await supabase.auth.signOut();
-  } catch (error) {
-    console.error("Failed to sign out:", error);
-    // Still redirect even if sign out fails
-  }
-  
-  return redirect("/sign-in");
+  await signOut({ redirectTo: "/sign-in" });
 };

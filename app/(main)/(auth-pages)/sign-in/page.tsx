@@ -25,26 +25,29 @@ export default function Login({ searchParams }: { searchParams: Promise<Message>
     setIsLoading(true);
     try {
       const result = await signInAction(formData);
-      
-      // If the action returns an error, it will be handled by the form
-      // If it's successful, the action will handle the redirect internally
-      if (result && 'error' in result) {
-        // Error is already handled by the form
+
+      // signInAction will throw a redirect on success
+      // If we get here with an error, show it
+      if (result && "error" in result) {
+        setIsLoading(false);
         return;
       }
-      
-      // If successful, redirect to the specified location
-      if (result && typeof result === 'object' && 'success' in result && 'redirectTo' in result) {
-        const redirectResult = result as { success: boolean; redirectTo: string };
-        router.push(redirectResult.redirectTo);
+
+      // If success but no redirect happened (shouldn't occur)
+      if (result && "success" in result) {
+        window.location.href = "/dashboard";
       }
-    } catch (error) {
+    } catch (error: any) {
+      // NextAuth throws NEXT_REDIRECT for successful redirects
+      if (error?.message?.includes("NEXT_REDIRECT")) {
+        // This is expected - let it redirect
+        return;
+      }
       console.error("Sign in error:", error);
-      // Handle any unexpected errors
-    } finally {
       setIsLoading(false);
     }
   };
+
 
   const handleInputChange = (field: string, value: string) => {
     setFieldValues(prev => ({ ...prev, [field]: value }));

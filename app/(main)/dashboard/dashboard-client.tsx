@@ -340,8 +340,8 @@ import {
 import { DayPicker } from "react-day-picker";
 import { format } from "date-fns";
 import "react-day-picker/dist/style.css";
-import WalletBalanceCard from "@/components/dashboard/wallet/wallet-balance-card";
-import { Transactions } from "@/components/dashboard/wallet/transactions";
+import WalletBalanceCard from "@/components/dashboard/wallet-balance-card";
+import { Transactions } from "@/components/dashboard/transactions-table";
 import { useRouter } from "next/navigation";
 import InteractiveSidebar from "@/components/dashboard/sidebar";
 
