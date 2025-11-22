@@ -384,7 +384,6 @@
 
 // export default InteractiveSidebar;
 
-
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -396,8 +395,9 @@ import {
   FileText,
   Wallet,
   Headphones,
-  Faders,
+  SignOut, // ✅ Changed from Faders
 } from "@phosphor-icons/react";
+import { signOutAction } from "@/app/(main)/actions"; // ✅ Added
 
 const InteractiveSidebar = () => {
   const pathname = usePathname();
@@ -409,40 +409,40 @@ const InteractiveSidebar = () => {
       id: "dashboard",
       icon: SquaresFour,
       label: "Dashboard",
-      route: "/dashboard", // ✅ Goes to app/(main)/dashboard/page.tsx
+      route: "/dashboard",
     },
     {
       id: "transactions",
       icon: Database,
       label: "Transactions",
-      route: "/transactions", // ✅ Goes to app/(main)/transactions/page.tsx
+      route: "/transactions",
     },
     {
       id: "agreements",
       icon: FileText,
       label: "Agreements",
-      route: "/dashboard/agreements", // ✅ Goes to app/(main)/dashboard/agreements/page.tsx
+      route: "/dashboard/agreements",
     },
     {
       id: "wallet",
       icon: Wallet,
       label: "Wallet",
-      route: "/wallet", // ✅ Goes to app/(main)/wallet/page.tsx
+      route: "/wallet",
     },
     {
       id: "support",
       icon: Headphones,
       label: "Support",
-      route: "/support", // ✅ Goes to app/(main)/support/page.tsx
+      route: "/support",
     },
   ];
 
-
+  // ✅ Changed from Settings to Sign Out
   const bottomMenuItem = {
-    id: "settings",
-    icon: Faders,
-    label: "Settings",
-    route: "/settings",
+    id: "signout",
+    icon: SignOut,
+    label: "Sign Out",
+    action: "signout",
   };
 
   useEffect(() => {
@@ -465,8 +465,6 @@ const InteractiveSidebar = () => {
 
     if (activeMenuItem) {
       setActiveItem(activeMenuItem.id);
-    } else if (currentPath === bottomMenuItem.route) {
-      setActiveItem(bottomMenuItem.id);
     } else {
       setActiveItem("dashboard");
     }
@@ -500,42 +498,73 @@ const InteractiveSidebar = () => {
           <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-[3px] w-1.5 h-1.5 bg-white/10 backdrop-blur-md rotate-45 border-l border-b border-white/20"></div>
         </div>
 
-        <Link href={item.route}>
+        {/* ✅ Added conditional rendering for signout */}
+        {item.action === "signout" ? (
           <button
+            onClick={() => {
+              if (confirm("Are you sure you want to sign out?")) {
+                window.location.href = "/api/auth/signout?callbackUrl=/sign-in";
+              }
+            }}
             className={`relative w-[60px] h-[60px] flex items-center justify-center 
-                            rounded-full cursor-pointer transition-all duration-300 
-                            focus:outline-none group
-                            ${
-                              isActive
-                                ? "bg-white text-black shadow-xl shadow-white/25"
-                                : "bg-white/[0.03] backdrop-blur-xl backdrop-saturate-150 text-white border border-white/25 hover:bg-white/[0.35] hover:text-white hover:border-white/35 hover:scale-[1.05] shadow-lg shadow-black/10"
-                            }`}
-            aria-label={`Navigate to ${item.label}`}
+                        rounded-full cursor-pointer transition-all duration-300 
+                        focus:outline-none group
+                        bg-white/[0.03] backdrop-blur-xl backdrop-saturate-150 text-white border border-white/25 hover:bg-red-500/30 hover:text-white hover:border-red-500/50 hover:scale-[1.05] shadow-lg shadow-black/10`}
+            aria-label={item.label}
           >
-            {!isActive && (
-              <>
-                <div className="absolute inset-0 rounded-full shadow-inner shadow-white/20"></div>
-                <div className="absolute inset-0 rounded-full overflow-hidden pointer-events-none opacity-100 group-hover:opacity-100 transition-opacity duration-300">
-                  <div className="absolute top-0 left-0 right-0 h-[50%] bg-gradient-to-b from-white/20 to-transparent"></div>
-                  <div className="absolute inset-0 bg-gradient-to-br from-white/15 via-transparent to-transparent"></div>
-                  <div className="absolute bottom-0 left-0 right-0 h-[30%] bg-gradient-to-t from-white/5 to-transparent"></div>
-                </div>
-              </>
-            )}
+            <div className="absolute inset-0 rounded-full shadow-inner shadow-white/20"></div>
+            <div className="absolute inset-0 rounded-full overflow-hidden pointer-events-none opacity-100 group-hover:opacity-100 transition-opacity duration-300">
+              <div className="absolute top-0 left-0 right-0 h-[50%] bg-gradient-to-b from-white/20 to-transparent"></div>
+              <div className="absolute inset-0 bg-gradient-to-br from-white/15 via-transparent to-transparent"></div>
+              <div className="absolute bottom-0 left-0 right-0 h-[30%] bg-gradient-to-t from-white/5 to-transparent"></div>
+            </div>
 
             <IconComponent
               size={26}
-              weight={isActive ? "fill" : "regular"}
+              weight="regular"
               className={`relative z-10 transition-all duration-200 ${
                 isHovered ? "scale-110" : "scale-100"
               }`}
             />
-
-            {isActive && (
-              <div className="absolute inset-0 rounded-full shadow-inner shadow-black/5"></div>
-            )}
           </button>
-        </Link>
+        ) : (
+          <Link href={item.route}>
+            <button
+              className={`relative w-[60px] h-[60px] flex items-center justify-center 
+                              rounded-full cursor-pointer transition-all duration-300 
+                              focus:outline-none group
+                              ${
+                                isActive
+                                  ? "bg-white text-black shadow-xl shadow-white/25"
+                                  : "bg-white/[0.03] backdrop-blur-xl backdrop-saturate-150 text-white border border-white/25 hover:bg-white/[0.35] hover:text-white hover:border-white/35 hover:scale-[1.05] shadow-lg shadow-black/10"
+                              }`}
+              aria-label={`Navigate to ${item.label}`}
+            >
+              {!isActive && (
+                <>
+                  <div className="absolute inset-0 rounded-full shadow-inner shadow-white/20"></div>
+                  <div className="absolute inset-0 rounded-full overflow-hidden pointer-events-none opacity-100 group-hover:opacity-100 transition-opacity duration-300">
+                    <div className="absolute top-0 left-0 right-0 h-[50%] bg-gradient-to-b from-white/20 to-transparent"></div>
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/15 via-transparent to-transparent"></div>
+                    <div className="absolute bottom-0 left-0 right-0 h-[30%] bg-gradient-to-t from-white/5 to-transparent"></div>
+                  </div>
+                </>
+              )}
+
+              <IconComponent
+                size={26}
+                weight={isActive ? "fill" : "regular"}
+                className={`relative z-10 transition-all duration-200 ${
+                  isHovered ? "scale-110" : "scale-100"
+                }`}
+              />
+
+              {isActive && (
+                <div className="absolute inset-0 rounded-full shadow-inner shadow-black/5"></div>
+              )}
+            </button>
+          </Link>
+        )}
       </div>
     );
   };

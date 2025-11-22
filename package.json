@@ -6,13 +6,13 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "migrate": "node scripts/migrate.js"
+    "lint": "next lint"
   },
   "dependencies": {
     "@circle-fin/developer-controlled-wallets": "^8.4.0",
     "@circle-fin/smart-contract-platform": "^8.4.0",
     "@clerk/nextjs": "^6.32.0",
+    "@coinbase/cdp-sdk": "^1.38.4",
     "@coinbase/coinbase-sdk": "^0.25.0",
     "@google/generative-ai": "^0.24.1",
     "@jitsi/react-sdk": "^1.4.4",
@@ -35,6 +35,7 @@
     "cmdk": "^1.1.1",
     "critters": "^0.0.25",
     "dotenv": "^17.2.3",
+    "ethers": "^6.15.0",
     "framer-motion": "^12.23.11",
     "lucide-react": "^0.525.0",
     "mammoth": "^1.10.0",
@@ -51,6 +52,7 @@
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.3.1",
     "uuid": "^11.1.0",
+    "viem": "^2.38.4",
     "zod": "^4.0.14"
   },
   "devDependencies": {

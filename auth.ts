@@ -1,87 +1,100 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
-import { authConfig } from "./auth.config";
-import { z } from "zod";
-import bcrypt from "bcryptjs";
-import { query } from "@/lib/db/postgres";
 
-interface User {
-  id: string;
-  email: string;
-  password_hash: string;
-  email_verified: Date | null;
-}
+const BACKEND_API_URL = process.env.BACKEND_API_URL || "http://localhost:5000";
 
-async function getUser(email: string): Promise<User | null> {
-  try {
-    const users = await query<User>(
-      "SELECT id, email, password_hash, email_verified FROM users WHERE email = $1",
-      [email]
-    );
-    return users[0] || null;
-  } catch (error) {
-    console.error("Failed to fetch user:", error);
-    return null;
-  }
-}
-
-export const { auth, signIn, signOut, handlers } = NextAuth({
-  ...authConfig,
+export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
     Credentials({
       credentials: {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials) {
-        const parsedCredentials = z
-          .object({
-            email: z.string().email(),
-            password: z.string().min(6),
-          })
-          .safeParse(credentials);
+      authorize: async (credentials) => {
+        const email = credentials.email as string;
+        const password = credentials.password as string;
 
-        if (!parsedCredentials.success) {
-          console.log("❌ Invalid credentials format");
+        console.log("🔐 [NextAuth] Authorize called for:", email);
+
+        if (!email || !password) {
+          console.error("❌ [NextAuth] Missing email or password");
           return null;
         }
 
-        const { email, password } = parsedCredentials.data;
-        console.log("🔍 Attempting login for:", email);
+        try {
+          console.log(
+            "📡 [NextAuth] Calling backend:",
+            `${BACKEND_API_URL}/api/user/login`
+          );
 
-        const user = await getUser(email);
+          // Validate credentials via backend API
+          const response = await fetch(`${BACKEND_API_URL}/api/user/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password }),
+          });
 
-        if (!user) {
-          console.log("❌ User not found:", email);
+          console.log(
+            "📡 [NextAuth] Backend response status:",
+            response.status
+          );
+
+          if (!response.ok) {
+            console.error("❌ [NextAuth] Backend authentication failed");
+            return null;
+          }
+
+          const data = await response.json();
+
+          console.log(
+            "✅ [NextAuth] Backend authentication successful:",
+            data.email
+          );
+          console.log("🎫 [NextAuth] Token received:", data.token);
+
+          // Return user object for NextAuth session
+          return {
+            id: data.token, // Use backend token as user ID
+            email: data.email,
+            name: email.split("@")[0], // Extract name from email
+          };
+        } catch (error) {
+          console.error("❌ [NextAuth] Authorization error:", error);
           return null;
         }
-
-        console.log("✅ User found:", user.email);
-
-        const passwordsMatch = await bcrypt.compare(
-          password,
-          user.password_hash
-        );
-
-        if (!passwordsMatch) {
-          console.log("❌ Invalid password for user:", email);
-          return null;
-        }
-
-        console.log("✅ Password verified for:", email);
-
-        // Return user object (will be passed to JWT callback)
-        return {
-          id: user.id,
-          email: user.email,
-        };
       },
     }),
   ],
+  pages: {
+    signIn: "/sign-in",
+  },
+  callbacks: {
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+        token.email = user.email;
+        token.name = user.name;
+        console.log("🎫 [NextAuth] JWT token created:", {
+          id: user.id,
+          email: user.email,
+        });
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      if (token) {
+        session.user.id = token.id as string;
+        session.user.email = token.email as string;
+        session.user.name = token.name as string;
+        console.log("✅ [NextAuth] Session created for:", session.user.email);
+      }
+      return session;
+    },
+  },
   session: {
     strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   secret: process.env.AUTH_SECRET,
-  debug: process.env.NODE_ENV === "development", // Enable debug logs
+  debug: true, // Enable debug logs
 });

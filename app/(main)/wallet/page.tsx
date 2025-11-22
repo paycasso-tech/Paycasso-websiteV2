@@ -1641,11 +1641,95 @@
 // }
 
 
+// import { auth } from "@/auth";
+// import { redirect } from "next/navigation";
+// import { query } from "@/lib/db/postgres";
+// import InteractiveSidebar from "@/components/dashboard/sidebar";
+// import WalletContent from "@/components/dashboard/wallet-content";
+
+// export default async function WalletPage() {
+//   const session = await auth();
+
+//   if (!session?.user) {
+//     redirect("/sign-in");
+//   }
+
+//   // Fetch wallet data from PostgreSQL
+//   let walletData = null;
+//   let error = null;
+
+//   try {
+//     // Get user's profile
+//     const profiles = await query<{ id: number }>(
+//       "SELECT id FROM profiles WHERE user_id = $1",
+//       [session.user.id]
+//     );
+
+//     if (profiles.length > 0) {
+//       // Get wallet data
+//       const wallets = await query<{
+//         circle_wallet_id: string;
+//         wallet_address: string;
+//         blockchain: string;
+//         currency: string;
+//       }>(
+//         "SELECT circle_wallet_id, wallet_address, blockchain, currency FROM wallets WHERE profile_id = $1 LIMIT 1",
+//         [profiles[0].id]
+//       );
+
+//       if (wallets.length > 0) {
+//         walletData = wallets[0];
+//       } else {
+//         error = "No wallet found";
+//       }
+//     } else {
+//       error = "Profile not found";
+//     }
+//   } catch (err) {
+//     console.error("Error fetching wallet:", err);
+//     error = "Failed to load wallet data";
+//   }
+
+//   return (
+//     <div className="min-h-screen w-full bg-[#0a0a0a] text-white">
+//       <InteractiveSidebar />
+
+//       <div className="ml-[88px] p-8">
+//         {/* <div className="mb-6">
+//           <h1 className="text-3xl font-bold tracking-tight">Wallet Overview</h1>
+//           <p className="text-gray-400 mt-2">
+//             Manage your crypto wallet and transactions
+//           </p>
+//         </div> */}
+
+//         {error ? (
+//           <div className="bg-yellow-900/20 border border-yellow-700/50 rounded-xl p-6">
+//             <h2 className="text-xl font-semibold text-yellow-500 mb-2">
+//               Wallet Not Found
+//             </h2>
+//             <p className="text-gray-400">{error}</p>
+//           </div>
+//         ) : walletData ? (
+//           <WalletContent
+//             initialWalletData={walletData}
+//             userEmail={session.user.email || ""}
+//           />
+//         ) : (
+//           <div className="bg-white/[0.03] border border-white/20 rounded-xl p-6">
+//             <p className="text-gray-400">Loading wallet...</p>
+//           </div>
+//         )}
+//       </div>
+//     </div>
+//   );
+// }
+
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
-import { query } from "@/lib/db/postgres";
 import InteractiveSidebar from "@/components/dashboard/sidebar";
 import WalletContent from "@/components/dashboard/wallet-content";
+
+const BACKEND_API_URL = process.env.BACKEND_API_URL || "http://localhost:3001";
 
 export default async function WalletPage() {
   const session = await auth();
@@ -1654,37 +1738,26 @@ export default async function WalletPage() {
     redirect("/sign-in");
   }
 
-  // Fetch wallet data from PostgreSQL
+  // Fetch wallet data from backend
   let walletData = null;
   let error = null;
 
   try {
-    // Get user's profile
-    const profiles = await query<{ id: number }>(
-      "SELECT id FROM profiles WHERE user_id = $1",
-      [session.user.id]
-    );
+    const response = await fetch(`${BACKEND_API_URL}/api/user/getWallet`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session.user.id}`,
+        "x-user-email": session.user.email,
+      },
+      cache: "no-store", // Don't cache wallet data
+    });
 
-    if (profiles.length > 0) {
-      // Get wallet data
-      const wallets = await query<{
-        circle_wallet_id: string;
-        wallet_address: string;
-        blockchain: string;
-        currency: string;
-      }>(
-        "SELECT circle_wallet_id, wallet_address, blockchain, currency FROM wallets WHERE profile_id = $1 LIMIT 1",
-        [profiles[0].id]
-      );
-
-      if (wallets.length > 0) {
-        walletData = wallets[0];
-      } else {
-        error = "No wallet found";
-      }
-    } else {
-      error = "Profile not found";
+    if (!response.ok) {
+      throw new Error(`Failed to fetch wallet: ${response.status}`);
     }
+
+    walletData = await response.json();
   } catch (err) {
     console.error("Error fetching wallet:", err);
     error = "Failed to load wallet data";
@@ -1705,7 +1778,7 @@ export default async function WalletPage() {
         {error ? (
           <div className="bg-yellow-900/20 border border-yellow-700/50 rounded-xl p-6">
             <h2 className="text-xl font-semibold text-yellow-500 mb-2">
-              Wallet Not Found
+              Wallet Error
             </h2>
             <p className="text-gray-400">{error}</p>
           </div>
@@ -1713,6 +1786,7 @@ export default async function WalletPage() {
           <WalletContent
             initialWalletData={walletData}
             userEmail={session.user.email || ""}
+            userName={session.user.name || ""}
           />
         ) : (
           <div className="bg-white/[0.03] border border-white/20 rounded-xl p-6">

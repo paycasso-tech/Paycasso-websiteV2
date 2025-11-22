@@ -49,11 +49,31 @@ declare global {
 
 interface WalletData {
   id: string;
-  circle_wallet_id: string;
-  blockchain: string;
-  wallet_address: string;
-  balance: string;
-  currency: string;
+  userId: string;
+  name: string;
+  email: string;
+  wallet: {
+    id: string;
+    address: string;
+    usdBalance: number;
+    usdcBalance: number;
+    rewards: {
+      id: string;
+      amount: number;
+      lastUpdated: string;
+    };
+  };
+  faucet: {
+    id: string;
+    amount: number;
+    lastRequested: string | null;
+  };
+}
+
+interface WalletContentProps {
+  initialWalletData: WalletData;
+  userEmail: string;
+  userName?: string;
 }
 
 interface CryptoData {
@@ -83,7 +103,7 @@ export default function WalletContent({
   userEmail,
   userName,
 }: WalletContentProps) {
-  const [wallet, setWallet] = useState<WalletData | null>(initialWalletData);
+  const [walletData, setWalletData] = useState<WalletData>(initialWalletData);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copiedField, setCopiedField] = useState<string | null>(null);
@@ -99,6 +119,11 @@ export default function WalletContent({
     price: 57234,
     image: "",
   });
+
+  // Extract wallet info
+  const walletAddress = walletData.wallet?.address || "";
+  const usdcBalance = walletData.wallet?.usdcBalance || 0;
+  const rewardsAmount = walletData.wallet?.rewards?.amount || 0;
 
   const router = useRouter();
 
@@ -393,12 +418,12 @@ export default function WalletContent({
                       <h3 className="text-sm font-medium text-gray-400 mb-2">
                         Total Balance
                       </h3>
-                      <div className="text-4xl font-bold mb-2">
-                        {wallet?.balance || "0"} {wallet?.currency || "USD"}
-                      </div>
-                      <div className="inline-flex items-center gap-1 bg-blue-500/20 text-blue-400 px-3 py-1 rounded-full text-xs font-medium">
-                        Last Day +5.3%
-                      </div>
+                      <h2 className="text-4xl font-bold">
+                        {usdcBalance.toFixed(2)} USDC
+                      </h2>
+                      <p className="text-sm opacity-80 mt-2">
+                        Rewards: {rewardsAmount.toFixed(4)} USDC
+                      </p>
                     </div>
                     <div className="w-32 h-20">
                       <ResponsiveContainer width="100%" height="100%">
@@ -447,10 +472,8 @@ export default function WalletContent({
                             Address
                           </span>
                         </div>
-                        <code className="text-xs font-mono text-white">
-                          {wallet?.wallet_address
-                            ? formatAddress(wallet.wallet_address)
-                            : "0x5df7...f9f5"}
+                        <code className="text-sm font-mono">
+                          {formatAddress(walletAddress)}
                         </code>
                       </div>
                     </button>
@@ -910,85 +933,85 @@ export default function WalletContent({
         </div>
       </div>
 
-
       {/* Wallet Modal */}
-            <AnimatePresence>
-              {showWalletModal && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-                  onClick={() => setShowWalletModal(false)}
-                >
-                  <motion.div
-                    initial={{ scale: 0.9 }}
-                    animate={{ scale: 1 }}
-                    exit={{ scale: 0.9 }}
-                    className="relative bg-white/[0.03] backdrop-blur-xl backdrop-saturate-150 border border-white/20 rounded-3xl p-8 max-w-lg w-full shadow-2xl"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <div className="absolute inset-0 pointer-events-none">
-                      <div className="absolute top-0 left-0 right-0 h-[50%] bg-gradient-to-b from-white/10 to-transparent rounded-3xl"></div>
-                    </div>
-                    <div className="relative z-10">
-                      <h2 className="text-2xl font-bold mb-6">Wallet Details</h2>
-                      <div className="space-y-4">
-                        <div>
-                          <label className="text-xs text-gray-400 mb-2 block">
-                            Wallet Address
-                          </label>
-                          <div className="flex items-center gap-2 p-4 bg-white/5 backdrop-blur-md rounded-xl border border-white/10">
-                            <code className="flex-1 text-sm font-mono">
-                              {wallet?.wallet_address || "adadasdqwdwqdqwe@#ad2"}
-                            </code>
-                            <button
-                              onClick={() =>
-                                copyToClipboard(
-                                  wallet?.wallet_address || "",
-                                  "address"
-                                )
-                              }
-                              className="p-2 hover:bg-white/10 rounded-lg transition-colors"
-                            >
-                              {copiedField === "address" ? (
-                                <CheckCircle2 className="w-5 h-5 text-green-400" />
-                              ) : (
-                                <Copy className="w-5 h-5 text-gray-400" />
-                              )}
-                            </button>
-                          </div>
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <label className="text-xs text-gray-400 mb-2 block">
-                              Blockchain
-                            </label>
-                            <div className="p-4 bg-white/5 backdrop-blur-md rounded-xl text-sm border border-white/10">
-                              {wallet?.blockchain || "ETH-SEPOLIA"}
-                            </div>
-                          </div>
-                          <div>
-                            <label className="text-xs text-gray-400 mb-2 block">
-                              Currency
-                            </label>
-                            <div className="p-4 bg-white/5 backdrop-blur-md rounded-xl text-sm border border-white/10">
-                              {wallet?.currency || "USD"}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
+      <AnimatePresence>
+        {showWalletModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => setShowWalletModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.9 }}
+              className="relative bg-white/[0.03] backdrop-blur-xl backdrop-saturate-150 border border-white/20 rounded-3xl p-8 max-w-lg w-full shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="absolute inset-0 pointer-events-none">
+                <div className="absolute top-0 left-0 right-0 h-[50%] bg-gradient-to-b from-white/10 to-transparent rounded-3xl"></div>
+              </div>
+              <div className="relative z-10">
+                <h2 className="text-2xl font-bold mb-6">Wallet Details</h2>
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-xs text-gray-400 mb-2 block">
+                      Wallet Address
+                    </label>
+                    <div className="flex items-center gap-2 p-4 bg-white/5 backdrop-blur-md rounded-xl border border-white/10">
+                      <code className="flex-1 text-sm font-mono">
+                        {walletAddress ||
+                          "adadasdqwdwqdqwe@#ad2"}
+                      </code>
                       <button
-                        onClick={() => setShowWalletModal(false)}
-                        className="mt-6 w-full bg-blue-600 hover:bg-blue-700 rounded-xl py-3 text-sm font-semibold transition-all shadow-lg"
+                        onClick={() =>
+                          copyToClipboard(
+                            walletAddress || "",
+                            "address"
+                          )
+                        }
+                        className="p-2 hover:bg-white/10 rounded-lg transition-colors"
                       >
-                        Close
+                        {copiedField === "address" ? (
+                          <CheckCircle2 className="w-5 h-5 text-green-400" />
+                        ) : (
+                          <Copy className="w-5 h-5 text-gray-400" />
+                        )}
                       </button>
                     </div>
-                  </motion.div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-xs text-gray-400 mb-2 block">
+                        Blockchain
+                      </label>
+                      <div className="p-4 bg-white/5 backdrop-blur-md rounded-xl text-sm border border-white/10">
+                        { "ETH-SEPOLIA"}
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-400 mb-2 block">
+                        Currency
+                      </label>
+                      <div className="p-4 bg-white/5 backdrop-blur-md rounded-xl text-sm border border-white/10">
+                        {"USDC"}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowWalletModal(false)}
+                  className="mt-6 w-full bg-blue-600 hover:bg-blue-700 rounded-xl py-3 text-sm font-semibold transition-all shadow-lg"
+                >
+                  Close
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
